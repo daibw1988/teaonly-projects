@@ -8,7 +8,6 @@ import android.util.Log;
 
 public class TeaonlyServer extends NanoHTTPD
 {
-    private OnRequestListen myRequestListen = null;
     private File homeDir;
 
     public TeaonlyServer(int port, String wwwroot) throws IOException {
@@ -17,7 +16,8 @@ public class TeaonlyServer extends NanoHTTPD
     }
     
     public Response serve( String uri, String method, Properties header, Properties parms, Properties files ) {
-    }
+    	return null;
+	}
 
     public void serveDone( Response r) {
     }
