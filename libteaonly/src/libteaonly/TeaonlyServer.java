@@ -1,6 +1,6 @@
-package com.googlecode.libteaonly;
+package libteaonly;
 
-import com.googlecode.libteaonly.NanoHTTPD;
+import libteaonly.NanoHTTPD;
 
 import java.io.*;
 import java.util.*;

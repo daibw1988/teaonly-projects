@@ -1,4 +1,4 @@
-package com.googlecode.libteaonly;
+package libteaonly;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
