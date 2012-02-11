@@ -19,8 +19,16 @@ public class MainActivity extends Activity {
         
         setContentView(R.layout.main);
         webview = (WebView)findViewById(R.id.webview);
-        webview.getSettings().setJavaScriptEnabled(false);
-        webview.loadUrl("http://www.baidu.com");
+        webview.getSettings().setJavaScriptEnabled(true);
+        /*
+		webview.setLayoutParams(new LinearLayout.LayoutParams(                                                                                                  
+					ViewGroup.LayoutParams.FILL_PARENT,
+					ViewGroup.LayoutParams.FILL_PARENT, 
+					1.0F));
+		*/
+		webview.setVerticalScrollBarEnabled(false);
+
+		webview.loadUrl("file:///android_asset/hello.html");
     }
 	
 
