@@ -32,12 +32,13 @@ public class TeaonlyServer extends NanoHTTPD
     }
 
     public Response serveCGI( String uri, String method, Properties header, Properties parms, Properties files ) {
-        return null;    
-    }
+        return null;
+	}
 
     public Response serveJGI( String uri, String method, Properties header, Properties parms, Properties files ) {
         String jgiUri;
-        int pos = uri.indexOf( "?" );
+
+		int pos = uri.indexOf( "?" );
         if ( pos == -1 )
             jgiUri = uri;
         else {
@@ -57,9 +58,10 @@ public class TeaonlyServer extends NanoHTTPD
     public static interface JavaGatewayInterface {
         public String doServe(String uri); 
     }
-    private Map<String, JavaGatewayInterface> jgiEntries = new HashMap<String, JavaGatewayInterface>();
+    private HashMap<String, JavaGatewayInterface> jgiEntries = new HashMap<String, JavaGatewayInterface>();
     public void registerJGI(String uri, JavaGatewayInterface jgi) {
-        jgiEntries.put(uri, jgi);
+        if ( jgi != null)
+			jgiEntries.put(uri, jgi);
     }
 
 }
