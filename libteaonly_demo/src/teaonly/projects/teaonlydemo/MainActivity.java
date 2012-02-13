@@ -1,5 +1,8 @@
 package teaonly.projects.teaonlydemo;
 
+import libteaonly.TeaonlyServer;
+
+import java.io.*;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -11,14 +14,31 @@ import android.webkit.WebView;
 
 public class MainActivity extends Activity {
     private WebView webview;
-
+	private TeaonlyServer teaServer;
+	
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);        
         requestWindowFeature(Window.FEATURE_NO_TITLE);
-        
         setContentView(R.layout.main);
-        webview = (WebView)findViewById(R.id.webview);
+        
+		// setup native libraries
+		NativeAgent.LoadLibraries();
+
+		// setup Teaonly server
+		try {
+			teaServer = new TeaonlyServer(19790, "/android_asset");
+		} catch (IOException e) {
+			e.printStackTrace();
+			teaServer = null;
+		}
+		if ( teaServer != null) {
+			teaServer.registerJGI("/jgi/login", doLogin);
+			teaServer.registerJGI("/jgi/query", doQuery);
+		}
+
+ 		//setup webView
+		webview = (WebView)findViewById(R.id.webview);
         webview.getSettings().setJavaScriptEnabled(true);
         /*
 		webview.setLayoutParams(new LinearLayout.LayoutParams(                                                                                                  
@@ -27,10 +47,22 @@ public class MainActivity extends Activity {
 					1.0F));
 		*/
 		webview.setVerticalScrollBarEnabled(false);
-
-		webview.loadUrl("file:///android_asset/hello.html");
-    }
+		webview.loadUrl("file:///android_asset/ppcam.html");
+	}
 	
+	private TeaonlyServer.JavaGatewayInterface doLogin = new TeaonlyServer.JavaGatewayInterface () {
+		@Override
+		public String doServe(String uri) {
+			return "OK!";	
+		}
+	};
+
+	private TeaonlyServer.JavaGatewayInterface doQuery = new TeaonlyServer.JavaGatewayInterface () {
+		@Override
+		public String doServe(String uri) {
+			return "OK!";		
+		}
+	};
 
 
 }

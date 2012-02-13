@@ -1,0 +1,6 @@
+1. Frist including the source from libteaonly
+	#ln -s ../libteaonly/jni/
+	#cd src
+	#ln -s ../../libteaonly/src/com/
+
+
