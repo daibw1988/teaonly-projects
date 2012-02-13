@@ -1,2 +1,3 @@
-LOCAL_SRC_FILES := cgateway.cpp
+LOCAL_SRC_FILES := jni.cpp\
+				   cgateway.cpp
 
