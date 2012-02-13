@@ -1,0 +1,50 @@
+<!DOCTYPE html> 
+<html> 
+<head> 
+    <title>ppcam.tv</title> 
+    <meta name="viewport" content="width=device-width, initial-scale=1"> 
+    <link rel="stylesheet" href="code/jquery.mobile.min.css" />
+    <script src="code/jquery.min.js"></script>
+    <script src="code/jquery.mobile.min.js"></script>
+</head> 
+<body> 
+
+<div data-role="page" data-title="login", id="page_login" >
+
+    <div data-role="header">
+        <h1>Login to ppcam.tv</h1>
+    </div>
+
+    <div data-role="content">   
+        <label for="basic">Account:</label>
+        <input type="text"  id="input_account" value=""  />
+        <label for="basic">Password:</label>
+        <input type="password" id="input_passwd" value=""  />
+        <input type="button" id="btn_login" value="Login" />
+        <span id="span_message"></span>
+    </div><!-- /content -->
+
+    <script>
+        // call to Teaonly server
+        function beginLogin() {
+                        
+        }
+
+        $("#page_login").live("pageinit",function() {        
+            $("#span_message").hide();
+            $("#btn_login").bind("click", function() {
+                // begin login action
+                beginLogin();                
+                // show waitting dialog
+                $("#btn_login").button('disable');
+                $("#span_message").html("Waitting..");
+                $("#span_message").show();
+            });
+        });
+    </script>
+
+</div><!-- /page -->
+
+</body>
+</html>
+
