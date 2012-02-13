@@ -47,7 +47,7 @@ public class MainActivity extends Activity {
 					1.0F));
 		*/
 		webview.setVerticalScrollBarEnabled(false);
-		webview.loadUrl("file:///android_asset/ppcam.html");
+		webview.loadUrl("file:///android_asset/demo.html");
 	}
 	
 	private TeaonlyServer.JavaGatewayInterface doLogin = new TeaonlyServer.JavaGatewayInterface () {
