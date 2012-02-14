@@ -3,7 +3,9 @@
 #define  JNIDEFINE(fname) Java_Teaonly_NativeAgent_##fname
 
 extern "C" {
-    JNIEXPORT jint JNICALL JNIDEFINE(nativeCallGatway)(JNIEnv* env, jclass clz, jstring file, jstring uri);
+    JNIEXPORT jint JNICALL JNIDEFINE(nativeInitial)(JNIEnv* env, jclass clz);
+    JNIEXPORT jint JNICALL JNIDEFINE(nativeRelease)(JNIEnv* env, jclass clz);
+    JNIEXPORT jstring JNICALL JNIDEFINE(nativeCallGatway)(JNIEnv* env, jclass clz, jstring file, jstring uri);
 };
 
 static std::string convert_jstring(JNIEnv *env, const jstring &js) {
@@ -17,12 +19,27 @@ static std::string convert_jstring(JNIEnv *env, const jstring &js) {
     return str;
 }
 
-JNIEXPORT jint JNICALL JNIDEFINE(nativeCallGatway)(JNIEnv* env, jclass clz, jstring jstr_file, jstring jstr_uri) {
-   	std::string file, uri;
+JNIEXPORT jint JNICALL JNIDEFINE(nativeInitial)(JNIEnv* env, jclass clz) {
+    GatewayInterface::Gateway = new GatewayInterface();
+    return 0;
+}
+
+JNIEXPORT jint JNICALL JNIDEFINE(nativeRelease)(JNIEnv* env, jclass clz) {
+    if (GatewayInterface::Gateway != NULL)
+        delete GatewayInterface::Gateway;
+    return 0;
+}
+ 
+JNIEXPORT jstring JNICALL JNIDEFINE(nativeCallGatway)(JNIEnv* env, jclass clz, jstring jstr_file, jstring jstr_uri) {
+   	std::string file, uri, result;
 	file = convert_jstring(env, jstr_file);
 	uri = convert_jstring(env, jstr_uri);
-	int ret = GatwayInterface(file, uri);
-	return ret;
+
+    result = "";
+    if (GatewayInterface::Gateway != NULL)
+        GatewayInterface::Gateway->RunInterface(file, uri, result);
+    
+    return env->NewStringUTF(result.c_str()); 
 }
 
 
