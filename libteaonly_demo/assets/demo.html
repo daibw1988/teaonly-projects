@@ -27,7 +27,14 @@
     <script>
         // call to Teaonly server
         function beginLogin() {
-                        
+            $.ajax({
+                url: "http://127.0.0.1:19790/jgi/login",
+                cache: false,
+                success: loginOK
+            });
+        }
+        function loginOK(html) {
+            $("#span_message").html(html);
         }
 
         $("#page_login").live("pageinit",function() {        
