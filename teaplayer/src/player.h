@@ -4,7 +4,6 @@
 #include <vector>
 #include "talk/base/thread.h" 
 #include "talk/base/messagequeue.h"
-#include "talk/base/scoped_ptr.h"
 
 class TeaAccess;
 class TeaDemux;
@@ -14,9 +13,18 @@ class TeaAudioOut;
 class TeaMedia;
 
 class TeaPlayer {
+public:
+    TeaPlayer();
+    ~TeaPlayer();
 
 private:
-    talk_base::scped_ptr<TeaMedia> meida;
+    TeaMedia *media;
+
+    TeaAccess *access;
+    TeaDecode *demux;
+    std::vector<TeaDecode *> decodes;
+    TeaVideoOut *vout;
+    TeaAudioOut *aout;
 };
 
 #endif
