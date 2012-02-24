@@ -32,8 +32,8 @@ public class TeaonlyServer extends NanoHTTPD
     }
 
     public Response serveCGI( String uri, String method, Properties header, Properties parms, Properties files ) {
-        return null;
-	}
+	    return null;
+    }
 
     public Response serveJGI( String uri, String method, Properties header, Properties parms, Properties files ) {
         String jgiUri;
