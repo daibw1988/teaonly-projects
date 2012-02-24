@@ -1,0 +1,8 @@
+1. Download libjing source file, current we only support -r117
+#mkdir talk
+#cd talk
+#svn co http://libjingle.googlecode.com/svn/trunk/talk/base base -r117
+
+2. Building Tea video player
+#make
+
