@@ -10,7 +10,7 @@ struct VideoPicture;
 
 class TeaVideoOutput: public sigslot::has_slots<>, public talk_base::MessageHandler{
 public:    
-    TeaVideoOutput(MediaTime initFullness, MediaTime fullness);
+    TeaVideoOutput(MediaTime, MediaTime);
     virtual ~TeaVideoOutput();
 
     void Start();
@@ -34,10 +34,14 @@ protected:
 protected:
     enum {
         MSG_RENDER_TIMER,
+        MSG_RENDER_STOP,
     };
-    
+    bool isPlaying; 
     talk_base::Thread *thread;
 
+    MediaTime underFullness;
+    MediaTime overFullness;
+    
     std::list<VideoPicture *> videoPictureFIFO;
     MediaTime   systemTime;
     MediaTime   mediaTime;
