@@ -89,7 +89,7 @@ void TeaPlayer::onMediaData(unsigned int n, void *m) {
 
     if ( decode->type == CODEC_TYPE_VIDEO) {
         VideoPicture *p = (VideoPicture *)m;
-        vout->PushNewVideoPicture(p);
+        vout->PushVideoPicture(p);
     }
 }
 

@@ -1,29 +1,46 @@
 #ifndef _VOUT_H_
 #define _VOUT_H_
 
+#include <list>
 #include "talk/base/thread.h" 
 #include "talk/base/messagequeue.h"
-#include "video.h"
-
 #include "timing.h"
 
-class TeaVideoOutput: public sigslot::has_slots<>{
+struct VideoPicture;
+
+class TeaVideoOutput: public sigslot::has_slots<>, public talk_base::MessageHandler{
 public:    
-    virtual ~TeaVideoOutput() = 0;
+    TeaVideoOutput(MediaTime initFullness, MediaTime fullness);
+    virtual ~TeaVideoOutput();
 
-    virtual void Start() = 0;
-    virtual void Pause() = 0;
-    virtual void Stop() = 0;
-    virtual void PushNewVideoPicture(VideoPicture *) = 0;
+    void Start();
+    void Pause();
+    void Stop();
+    void PushVideoPicture(VideoPicture *);
 
-    virtual MediaTime PlayingTime();
-    virtual MediaTime BufferedTime();
-    virtual unsigned int BufferedPictures();
-    virtual MediaTime FirstPictureTime();
-    virtual MediaTime LastPictureTime();
+    MediaTime PlayingTime();
+    MediaTime BufferedTime();
+    unsigned int BufferedPictures();
+    MediaTime FirstPictureTime();
+    MediaTime LastPictureTime();
 
     sigslot::signal0<> signalBufferOverflow;
     sigslot::signal0<> signalBufferUnderflow;
+
+protected:
+    virtual void OnMessage(talk_base::Message *msg);
+    virtual void PopVideoPicture() = 0;
+
+protected:
+    enum {
+        MSG_RENDER_TIMER,
+    };
+    
+    talk_base::Thread *thread;
+
+    std::list<VideoPicture *> videoPictureFIFO;
+    MediaTime   systemTime;
+    MediaTime   mediaTime;
 };
 
 #endif
