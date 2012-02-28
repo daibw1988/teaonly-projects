@@ -3,6 +3,12 @@
 
 #include "talk/base/thread.h" 
 #include "talk/base/messagequeue.h"
+#include "demux.h"
+
+typedef enum {
+    CODEC_TYPE_VIDEO,
+    CODEC_TYPE_AUDIO
+}CodecType;
 
 class TeaDecode : public sigslot::has_slots<> {
 public:    
@@ -10,10 +16,11 @@ public:
     
     virtual bool Open() = 0;
     virtual void Close() = 0;
-    virtual void PushPacket(unsigned char *data, size_t length);
+    virtual void PushNewPacket(const unsigned char *data, size_t length);
 
     // streaming access
-    sigslot::signal3<unsigned int channel, const unsigned char*, size_t> signalMediaData;
+    sigslot::signal2<unsigned int, void *> signalMediaData;
+    CodecType type;
 };
 
 

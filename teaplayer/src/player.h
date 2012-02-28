@@ -14,14 +14,15 @@ public:
     TeaPlayer(TeaAccess *a, TeaDemux *d);
     ~TeaPlayer();
 
-    setDecode(unsigned int n, TeaDecode *d);
+    void setDecode(unsigned int n, TeaDecode *d);
 
 private:
-    onMediaData(unsigned int n, unsigned char *data, size_t);
+    void onMediaPackage(unsigned int n, const unsigned char *p, size_t length);
+    void onMediaData(unsigned int n, void *m);
 
 private:
     TeaAccess *access;
-    TeaDecode *demux;
+    TeaDemux *demux;
 
     std::map<unsigned int, TeaDecode *> decodes;
 };

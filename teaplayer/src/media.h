@@ -1,6 +1,7 @@
 #include <string>
 
 class TeaMedia {
+public:
 public:    
     TeaMedia();
 

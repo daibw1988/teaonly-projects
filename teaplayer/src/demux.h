@@ -9,10 +9,10 @@ class TeaDemux : public sigslot::has_slots<> {
 public:    
     virtual ~TeaDemux(){};
     
-    virtual bool open(TeaDemux *) = 0;
+    virtual bool open(TeaAccess *) = 0;
 
     // streaming access
-    sigslot::signal3<unsigned int channel, const unsigned char*, size_t> signalMediaData;
+    sigslot::signal3<unsigned int, const unsigned char*, size_t> signalMediaPackage;
 };
 
 

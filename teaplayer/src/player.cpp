@@ -1,9 +1,11 @@
+#include <assert.h>
 #include "media.h"
 #include "access.h"
 #include "demux.h"
 #include "decode.h"
 #include "vout.h"
 #include "aout.h"
+#include "video.h"
 #include "player.h"
 
 TeaPlayer::TeaPlayer(TeaAccess *a, TeaDemux *d):
@@ -14,20 +16,33 @@ TeaPlayer::TeaPlayer(TeaAccess *a, TeaDemux *d):
     bool ret = d->open(a); 
     assert(ret == true);
 
-    d->signalMediaData.connect(this, &TeaPlayer::onMediaData);
+    d->signalMediaPackage.connect(this, &TeaPlayer::onMediaPackage);
 }
 
 TeaPlayer::~TeaPlayer() {
     
 }
 
-TeaPlayer::setDecode(unsigned int n, TeaDecode *d) {
+void TeaPlayer::setDecode(unsigned int n, TeaDecode *d) {
     decodes[n] = d;
+    d->signalMediaData.connect(this, &TeaPlayer::onMediaData);
 }
 
-TeaPlayer::onMediaData(unsigned int n, unsigned char *data, size_t length) {
+void TeaPlayer::onMediaPackage(unsigned int n, const unsigned char *p, size_t length) {
     TeaDecode *decode = decodes[n];
     assert(decode != NULL);
+    
+    decode->PushNewPacket(p, length);
+}
+
+void TeaPlayer::onMediaData(unsigned int n, void *m) {
+    TeaDecode *decode = decodes[n];
+    assert(decode != NULL);
+
+    if ( decode->type == CODEC_TYPE_VIDEO) {
+        VideoPicture *p = (VideoPicture *)m;
+        //vout->pushNewPicture();
+    }
 }
 
 
