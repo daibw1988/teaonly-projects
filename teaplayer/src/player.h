@@ -1,30 +1,29 @@
 #ifndef _PLAYER_H_
 #define _PLAYER_H_
 
-#include <vector>
+#include <map>
 #include "talk/base/thread.h" 
 #include "talk/base/messagequeue.h"
 
 class TeaAccess;
 class TeaDemux;
 class TeaDecode;
-class TeaVideoOut;
-class TeaAudioOut;
-class TeaMedia;
 
-class TeaPlayer {
+class TeaPlayer : public sigslot::has_slots<> {
 public:
-    TeaPlayer();
+    TeaPlayer(TeaAccess *a, TeaDemux *d);
     ~TeaPlayer();
 
-private:
-    TeaMedia *media;
+    setDecode(unsigned int n, TeaDecode *d);
 
+private:
+    onMediaData(unsigned int n, unsigned char *data, size_t);
+
+private:
     TeaAccess *access;
     TeaDecode *demux;
-    std::vector<TeaDecode *> decodes;
-    TeaVideoOut *vout;
-    TeaAudioOut *aout;
+
+    std::map<unsigned int, TeaDecode *> decodes;
 };
 
 #endif
