@@ -15,13 +15,14 @@ public:
 public:    
     virtual ~TeaAccess(){};
 
-    virtual AccessState state() = 0;
-    virtual bool open(const std::string &mrl) = 0;
-    virtual bool start() = 0;
-    virtual bool stop() = 0;
-    virtual void close() = 0;
+    virtual AccessState State() = 0;
+    virtual bool Open() = 0;
+    virtual bool Start() = 0;
+    virtual bool Stop() = 0;
+    virtual void Close() = 0;
 
     // streaming access
+    sigslot::signal1<bool> signalBeginofStream;
     sigslot::signal0<> signalEndOfStream;
     sigslot::signal2<const unsigned char*, size_t> signalData;
 };

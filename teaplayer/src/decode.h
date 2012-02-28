@@ -19,6 +19,7 @@ public:
     virtual void PushNewPacket(const unsigned char *data, size_t length);
 
     // streaming access
+    sigslot::signal0<> signalBufferOverflow;
     sigslot::signal2<unsigned int, void *> signalMediaData;
     CodecType type;
 };
