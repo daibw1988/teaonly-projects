@@ -1,5 +1,8 @@
+#include <assert.h>
 #include "video.h"
 #include "vout.h"
+
+const int RENDER_DELAY = 10;
 
 TeaVideoOutput::TeaVideoOutput(MediaTime overFull, MediaTime beginFull) {
     overFullness = overFull;
@@ -14,23 +17,27 @@ TeaVideoOutput::~TeaVideoOutput() {
         
 }
 
-TeaVideoOutput::Start() {
+void TeaVideoOutput::Start() {
     state = VO_STATE_BUFFERING;
     mediaTime = 0;
     thread->PostDelayed(RENDER_DELAY, this, MSG_RENDER_TIMER);
 }
 
-TeaVideoOutput::Pause() {
+void TeaVideoOutput::Pause() {
     state = VO_STATE_PAUSED;
     //updateBuffer();
 }
 
-TeaVideoOutput::Stop() {
+void TeaVideoOutput::Stop() {
     state = VO_STATE_STOPEED;
     thread->Post(this, MSG_RENDER_STOP);
 }
 
-TeaVideoOutput::OnMessage(talk_base::Message *msg) {
+bool TeaVideoOutput::PushVideoPicture(VideoPicture *) {
+    return true;
+}
+
+void TeaVideoOutput::OnMessage(talk_base::Message *msg) {
     switch(msg->message_id) {
         case MSG_RENDER_TIMER:
             doRender();
@@ -40,7 +47,7 @@ TeaVideoOutput::OnMessage(talk_base::Message *msg) {
     }
 }
 
-TeaVideoOutput::doRender() {
+void TeaVideoOutput::doRender() {
     static MediaTime last= BAD_TIME;
     MediaTime current = currentTime();
     MediaTime delta = current - last;
@@ -54,7 +61,7 @@ TeaVideoOutput::doRender() {
             break;
         case VO_STATE_BUFFERING:
             doBuffering();
-            thread->PostDelayed(RenderTimerDelay, this, MSG_RENDER_TIMER);
+            thread->PostDelayed(RENDER_DELAY, this, MSG_RENDER_TIMER);
             break;
         case VO_STATE_PLAYING:
             mediaTime += delta;
@@ -64,25 +71,34 @@ TeaVideoOutput::doRender() {
     }
 }
 
-
-TeaVideoOutput::doBuffering() {
-    asset( state == VO_STATE_BUFFERING);
+void TeaVideoOutput::doBuffering() {
+    assert( state == VO_STATE_BUFFERING);
     if ( BufferedLength() > beginFullness) {
         state = VO_STATE_PLAYING;
         signalBufferDone();
     }
 }
 
-TeaVideoOutput::doPlaying() {
-    asset( state == VO_STATE_PLAYING);
+void TeaVideoOutput::doPlaying() {
+    assert( state == VO_STATE_PLAYING);
     
+    VideoPicture *pRender = NULL;
     if ( mediaTime >= FirstPictureTime() ) {
+        talk_base::CritScope lock(&mutex_); 
+        pRender = videoPictureFIFO.front();
+        videoPictureFIFO.pop_front();        
+    }
+    if ( pRender != NULL) {
+        RenderVideoPicture(pRender);       
+    }
     
+    if ( BufferedLength() <= 0) {
+        state = VO_STATE_BUFFERING;
+        signalBufferOverflow();
     }
+}
 
-    if ( BufferedLength() > beginFullness) {
-        state = VO_STATE_PLAYING;
-        signalBufferDone();
-    }
+void TeaVideoOutput::doStop() {
+    
 }
 

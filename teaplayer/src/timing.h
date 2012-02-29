@@ -2,6 +2,9 @@
 #define _TIMING_H_
 
 #ifdef LINUX
+
+#include <stdint.h>
+
 typedef uint64_t MediaTime;
 
 const MediaTime BAD_TIME = (uint64_t)(-1);

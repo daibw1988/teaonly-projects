@@ -4,9 +4,9 @@
 #include <list>
 #include "talk/base/thread.h" 
 #include "talk/base/messagequeue.h"
+#include "video.h"
 #include "timing.h"
 
-struct VideoPicture;
 
 class TeaVideoOutput: public sigslot::has_slots<>, public talk_base::MessageHandler{
 public:    
@@ -16,30 +16,46 @@ public:
     void Start();
     void Pause();
     void Stop();
-    void PushVideoPicture(VideoPicture *);
+    bool PushVideoPicture(VideoPicture *);
 
     MediaTime PlayedTime() {
         return mediaTime;
     };
-    MediaTime BufferedLength();
-    unsigned int BufferedPictures();
-    MediaTime FirstPictureTime();
-    MediaTime LastPictureTime();
+    MediaTime BufferedLength() {
+        talk_base::CritScope lock(&mutex_); 
+        if ( videoPictureFIFO.size() >= 2) {
+            MediaTime delta = videoPictureFIFO.back()->mt - videoPictureFIFO.front()->mt;
+            return delta;
+        } 
+        return 0;
+    }
+    unsigned int BufferedPictures() {
+        talk_base::CritScope lock(&mutex_); 
+        return videoPictureFIFO.size();
+    }
+    MediaTime FirstPictureTime() {
+        talk_base::CritScope lock(&mutex_); 
+        return videoPictureFIFO.front()->mt;
+    }
+    MediaTime LastPictureTime() {
+        talk_base::CritScope lock(&mutex_); 
+        return videoPictureFIFO.back()->mt;
+    }
+
 
     sigslot::signal0<> signalBufferOverflow;
     sigslot::signal0<> signalBufferDone;
     sigslot::signal0<> signalBufferUnderflow;
 
 protected:
-    virtual void PopVideoPicture() = 0;
+    virtual void RenderVideoPicture( VideoPicture *target) = 0;
     virtual void OnMessage(talk_base::Message *msg);
 
 private:    
     void doRender();
     void doStop();
-    void resetTiming();
-    void resetBuffer();
-    
+    void doBuffering();
+    void doPlaying(); 
 
 private:
     enum {
@@ -60,8 +76,8 @@ private:
     
     std::list<VideoPicture *> videoPictureFIFO;
     MediaTime   mediaTime;
+    talk_base::CriticalSection mutex_;
 
-    const int RENDER_DELAY = 10;
 };
 
 #endif
