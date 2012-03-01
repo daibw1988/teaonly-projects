@@ -33,8 +33,21 @@ public:
     virtual void Close();
 
 private:
+    enum {
+        MSG_ACCESS_START,
+        MSG_ACCESS_TIMER,
+        MSG_ACCESS_STOP,
+    };
+    enum {
+        INPUT_CLOSED,
+        INPUT_READING,
+        INPUT_PAUSED
+    }
+
     FILE *mediaFile;
     std::string mediaPath;
+    
+    talk_base::Thread *thread;
 };
 
 #endif

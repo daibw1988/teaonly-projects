@@ -23,6 +23,8 @@ bool FileAccess::Stop() {
     return false;
 }
 
-
+bool FileAccess::Close() {
+    return false;
+}
 
 
