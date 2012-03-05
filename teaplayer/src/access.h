@@ -12,8 +12,6 @@ public:
     virtual ~TeaAccess(){};
 
     virtual bool Open() = 0;
-    virtual bool Start() = 0;
-    virtual bool Stop() = 0;
     virtual void Close() = 0;
 
     // streaming access
@@ -22,15 +20,16 @@ public:
     sigslot::signal2<const unsigned char*, size_t> signalData;
 };
 
-class FileAccess: public TeaAccess {
+class FileAccess: public TeaAccess, talk_base::MessageHandler {
 public:
     FileAccess(const std::string);
     virtual ~FileAccess();
     
     virtual bool Open();
-    virtual bool Start();
-    virtual bool Stop();
     virtual void Close();
+
+protected:
+    virtual void OnMessage(talk_base::Message *msg);
 
 private:
     enum {
@@ -38,15 +37,10 @@ private:
         MSG_ACCESS_TIMER,
         MSG_ACCESS_STOP,
     };
-    enum {
-        INPUT_CLOSED,
-        INPUT_READING,
-        INPUT_PAUSED
-    };
+    void doAccess();
 
     FILE *mediaFile;
     std::string mediaPath;
-    
     talk_base::Thread *thread;
 };
 
