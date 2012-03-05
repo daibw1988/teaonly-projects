@@ -48,19 +48,17 @@ public:
     sigslot::signal0<> signalBufferUnderflow;
 
 protected:
-    virtual void RenderVideoPicture( VideoPicture *target) = 0;
+    virtual void RenderVideoPicture( VideoPicture *target);
     virtual void OnMessage(talk_base::Message *msg);
 
 private:    
     void doRender();
-    void doStop();
     void doBuffering();
     void doPlaying(); 
 
 private:
     enum {
         MSG_RENDER_TIMER,
-        MSG_RENDER_STOP,
     };
     enum {
         VO_STATE_STOPEED,

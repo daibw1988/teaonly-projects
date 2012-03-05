@@ -42,7 +42,7 @@ private:
         INPUT_CLOSED,
         INPUT_READING,
         INPUT_PAUSED
-    }
+    };
 
     FILE *mediaFile;
     std::string mediaPath;

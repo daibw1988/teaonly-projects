@@ -25,25 +25,46 @@ void TeaVideoOutput::Start() {
 
 void TeaVideoOutput::Pause() {
     state = VO_STATE_PAUSED;
-    //updateBuffer();
 }
 
 void TeaVideoOutput::Stop() {
     state = VO_STATE_STOPEED;
-    thread->Post(this, MSG_RENDER_STOP);
+    
+    thread->Clear(this);
+    
+    if ( BufferedPictures() > 0) {
+        talk_base::CritScope lock(&mutex_); 
+        while( videoPictureFIFO.size() > 0) {
+            VideoPicture * pRender = videoPictureFIFO.front();
+            videoPictureFIFO.pop_front();        
+            delete pRender;
+        }         
+    }
+
 }
 
-bool TeaVideoOutput::PushVideoPicture(VideoPicture *) {
+bool TeaVideoOutput::PushVideoPicture(VideoPicture *newPic) {
+    if ( state == VO_STATE_STOPEED ) {
+        return false;
+    } else {
+        talk_base::CritScope lock(&mutex_); 
+        videoPictureFIFO.push_back(newPic);
+    }
+    
+    if ( videoPictureFIFO.size() > overFullness ) {
+        signalBufferOverflow();
+    } 
     return true;
+}
+
+void TeaVideoOutput::RenderVideoPicture(VideoPicture *target) {
+    delete target;
 }
 
 void TeaVideoOutput::OnMessage(talk_base::Message *msg) {
     switch(msg->message_id) {
         case MSG_RENDER_TIMER:
             doRender();
-        case MSG_RENDER_STOP:
-            doStop();
-            break;
     }
 }
 
@@ -88,17 +109,16 @@ void TeaVideoOutput::doPlaying() {
         pRender = videoPictureFIFO.front();
         videoPictureFIFO.pop_front();        
     }
+
     if ( pRender != NULL) {
         RenderVideoPicture(pRender);       
     }
     
     if ( BufferedLength() <= 0) {
         state = VO_STATE_BUFFERING;
-        signalBufferOverflow();
+        signalBufferUnderflow();
     }
 }
 
-void TeaVideoOutput::doStop() {
-    
-}
+
 
