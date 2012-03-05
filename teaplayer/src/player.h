@@ -34,9 +34,11 @@ public:
 
 private:
     void onAccessBegin(bool isOK);
+    void onAccessData(const unsigned char *p, size_t length);
     void onAccessEnd();
     void onMediaPackage(unsigned int n, const unsigned char *p, size_t length);
     void onMediaData(unsigned int n, void *m);
+    
 
 private:
     TeaAccess *access;

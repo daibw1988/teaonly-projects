@@ -20,7 +20,6 @@ TeaPlayer::TeaPlayer(TeaAccess *a, TeaDemux *d, TeaVideoOutput *vo):
     
     access->signalBeginofStream.connect(this, &TeaPlayer::onAccessBegin);
     access->signalEndOfStream.connect(this, &TeaPlayer::onAccessEnd);
-    access->signalData.connect(demux, &TeaDemux::PushNewData); 
     demux->signalMediaPackage.connect(this, &TeaPlayer::onMediaPackage);
 
     state = TP_STOPED;
@@ -76,7 +75,18 @@ void TeaPlayer::onAccessEnd() {
     vout->Stop();
 }
 
+void TeaPlayer::onAccessData(const unsigned char *p, size_t length) {
+    if ( state == TP_STOPED)
+       return;
+
+    demux->PushNewData(p, length);    
+}
+
+
 void TeaPlayer::onMediaPackage(unsigned int n, const unsigned char *p, size_t length) {
+    if ( state == TP_STOPED)
+        return;
+
     TeaDecode *decode = decodes[n];
     assert(decode != NULL);
     
