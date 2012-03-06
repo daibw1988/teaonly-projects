@@ -16,7 +16,8 @@ VideoPicture * FFDecode::DecodeVideoPacket(const unsigned char *data, size_t len
     return NULL;
 }
 
-FFDemux::FFDemux() {
+FFDemux::FFDemux(const std::string &file) {
+    targetFile = file;
     av_register_all();
 
     pFormatCtx = NULL;
@@ -55,7 +56,7 @@ FFDemux::~FFDemux() {
     buffer_io = NULL;
 }
 
-bool FFDemux::Open(const std::string &fileName) {
+bool FFDemux::Open() {
 
     // create io for libavformat
 	buffer_io = new unsigned char[buffer_io_size];
@@ -72,7 +73,6 @@ bool FFDemux::Open(const std::string &fileName) {
     decodes.clear();
     pFormatCtx = NULL;
 
-    targetFile = fileName;
     probe_data.filename = targetFile.c_str(); 
     probe_data.buf_size = 1024*8;
     probe_data.buf = (unsigned char *)malloc(probe_data.buf_size);

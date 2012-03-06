@@ -14,7 +14,7 @@ class TeaDemux : public sigslot::has_slots<> {
 public:    
     virtual ~TeaDemux(){};
     
-    virtual bool Open(const std::string &file) = 0;
+    virtual bool Open() = 0;
     virtual void Close() = 0;
     virtual bool PushNewData(const unsigned char *data, size_t length) = 0;
 
@@ -52,10 +52,10 @@ private:
 
 class FFDemux:public TeaDemux, talk_base::MessageHandler {
 public:
-    FFDemux();
+    FFDemux(const std::string &file);
     virtual ~FFDemux();
     
-    virtual bool Open(const std::string &file);
+    virtual bool Open();
     virtual void Close();
     virtual bool PushNewData(const unsigned char *data, size_t length);
 
