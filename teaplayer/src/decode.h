@@ -3,26 +3,30 @@
 
 #include "talk/base/thread.h" 
 #include "talk/base/messagequeue.h"
-#include "demux.h"
+#include "timing.h"
+#include "video.h"
 
 typedef enum {
-    CODEC_TYPE_VIDEO,
-    CODEC_TYPE_AUDIO
-}CodecType;
+    TEACODEC_TYPE_UNKNOW,
+    TEACODEC_TYPE_VIDEO,
+    TEACODEC_TYPE_AUDIO
+}TeaCodecType;
 
-class TeaDecode : public sigslot::has_slots<> {
-public:    
-    virtual ~TeaDecode(){};
-    
-    virtual bool Open() = 0;
-    virtual void Close() = 0;
-    virtual void PushNewPacket(const unsigned char *data, size_t length);
-
-    // streaming access
-    sigslot::signal0<> signalBufferOverflow;
-    sigslot::signal2<unsigned int, void *> signalMediaData;
-    CodecType type;
+class MediaPacket {
+public:
+    MediaTime pts;
+    MediaTime dts;
+    unsigned char *data;
+    unsigned int length;
+    void *priv;
 };
 
+class TeaDecode{
+public:    
+    virtual ~TeaDecode(){};
+    virtual VideoPicture* DecodeVideoPacket(MediaPacket *) { return NULL; }
+    virtual void *DecodeAudioSamples(MediaPacket *) {return NULL; }     
+    TeaCodecType type;
+};
 
 #endif

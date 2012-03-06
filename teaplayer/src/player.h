@@ -9,6 +9,7 @@ class TeaAccess;
 class TeaDemux;
 class TeaDecode;
 class TeaVideoOutput;
+class MediaPacket;
 class TeaMedia;
 
 class TeaPlayer : public sigslot::has_slots<> {
@@ -36,7 +37,7 @@ private:
     void onAccessBegin(bool isOK);
     void onAccessData(const unsigned char *p, size_t length);
     void onAccessEnd();
-    void onMediaPackage(unsigned int n, const unsigned char *p, size_t length);
+    void onMediaPacket(unsigned int n, MediaPacket *p);
     void onMediaData(unsigned int n, void *m);
     
 
@@ -44,7 +45,6 @@ private:
     TeaAccess *access;
     TeaDemux *demux;
     TeaVideoOutput *vout;
-    std::map<unsigned int, TeaDecode *> decodes;
 
     PlayerState state;
 };

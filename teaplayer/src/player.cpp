@@ -15,12 +15,11 @@ TeaPlayer::TeaPlayer(TeaAccess *a, TeaDemux *d, TeaVideoOutput *vo):
     // building player 
     access->Close();
     demux->Close(); 
-    decodes.clear();
     vout->Stop();
     
     access->signalBeginofStream.connect(this, &TeaPlayer::onAccessBegin);
     access->signalEndOfStream.connect(this, &TeaPlayer::onAccessEnd);
-    demux->signalMediaPackage.connect(this, &TeaPlayer::onMediaPackage);
+    demux->signalMediaPackage.connect(this, &TeaPlayer::onMediaPacket);
 
     state = TP_STOPED;
 }
@@ -29,16 +28,8 @@ TeaPlayer::~TeaPlayer() {
     
 }
 
-void TeaPlayer::setDecode(unsigned int n, TeaDecode *d) {
-    decodes[n] = d;
-    d->signalMediaData.connect(this, &TeaPlayer::onMediaData);
-    d->Close();
-}
-
 void TeaPlayer::Play() {
-    for(std::map<unsigned int, TeaDecode *>::iterator i=decodes.begin(); i != decodes.end(); i++) {
-        (*i).second->Open();
-    } 
+    
     demux->Open();
     access->Open();
 }
@@ -56,9 +47,6 @@ void TeaPlayer::onAccessBegin(bool isOK) {
         access->Close();    
         demux->Close();
 
-        for(std::map<unsigned int, TeaDecode *>::iterator i=decodes.begin(); i != decodes.end(); i++) {
-            (*i).second->Close();
-        } 
     } else {
         vout->Start();
     }
@@ -68,10 +56,6 @@ void TeaPlayer::onAccessEnd() {
     access->Close();    
     demux->Close();
 
-    for(std::map<unsigned int, TeaDecode *>::iterator i=decodes.begin(); i != decodes.end(); i++) {
-        (*i).second->Close();
-    } 
-    
     vout->Stop();
 }
 
@@ -83,21 +67,15 @@ void TeaPlayer::onAccessData(const unsigned char *p, size_t length) {
 }
 
 
-void TeaPlayer::onMediaPackage(unsigned int n, const unsigned char *p, size_t length) {
-    if ( state == TP_STOPED)
-        return;
+void TeaPlayer::onMediaPacket(unsigned int n, MediaPacket *p) {
 
-    TeaDecode *decode = decodes[n];
-    assert(decode != NULL);
-    
-    decode->PushNewPacket(p, length);
 }
 
 void TeaPlayer::onMediaData(unsigned int n, void *m) {
-    TeaDecode *decode = decodes[n];
+    TeaDecode *decode = demux->decodes[n];
     assert(decode != NULL);
 
-    if ( decode->type == CODEC_TYPE_VIDEO) {
+    if ( decode->type == TEACODEC_TYPE_VIDEO) {
         VideoPicture *p = (VideoPicture *)m;
         if ( ! vout->PushVideoPicture(p) )
             delete p;

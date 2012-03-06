@@ -25,7 +25,7 @@ TARGET = tea
 
 
 $(TARGET): $(OBJS) $(LIB_TARGET)
-	$(CC) -g $(OBJS) -o $@ -L./ -ljingle -lm -lpthread
+	$(CC) -g $(OBJS) -o $@ -L./ -ljingle -lm -lpthread -lavformat -lavutil -lavcodec
 
 $(LIB_TARGET): $(LIB_OBJS)
 	$(AR) -cr $@ $(LIB_OBJS)
