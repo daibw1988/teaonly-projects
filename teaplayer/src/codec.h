@@ -16,6 +16,7 @@ class MediaPacket {
 public:
     MediaTime pts;
     MediaTime dts;
+    unsigned int channel; 
     unsigned char *data;
     unsigned int length;
     void *priv;
