@@ -30,7 +30,7 @@ FFDemux::FFDemux(const std::string &file) {
     buffer_stream = new unsigned char[buffer_stream_size];  
     buffer_stream_length = 0;
     buffer_io = NULL;
-    buffer_io_size = 1024*32;
+    buffer_io_size = 1024*8;
     buffer_probe_size = 1024*8;
     pthread_mutex_init(&data_locker, NULL);
     pthread_cond_init(&data_arrive_cond, NULL); 
@@ -187,6 +187,8 @@ void FFDemux::decodeInit() {
 }
 
 void FFDemux::doDemux() { 
+    
+    // probe meida stream format
     if( avformat_open_input(&pFormatCtx, targetFile.c_str(), pFormat, 0) < 0){ 
         pFormatCtx = 0;
         goto probe_failed;
@@ -199,9 +201,25 @@ void FFDemux::doDemux() {
     av_dump_format(pFormatCtx, 0, "null", 0);
     decodeInit(); 
     signalProbed(true);
+    
+    // main loop of demux
+    AVPacket newPacket;
+    while(1) {
+        if ( av_read_frame(pFormatCtx, &newPacket) < 0){
+            goto stream_end;
+        }   
+        
+        std::cout << "Get AV packet =  " << newPacket.stream_index << std::endl;
+
+    }
+
 
 probe_failed:
     probeFailed = true;
     signalProbed(false);  
+    return;
+
+stream_end:
+    return;
 }
 

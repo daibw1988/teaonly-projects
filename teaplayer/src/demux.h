@@ -20,8 +20,9 @@ public:
 
     // streaming access
     sigslot::signal1<bool> signalProbed;
+    sigslot::signal0<> signalOverflow;
     sigslot::signal2<unsigned int, MediaPacket *> signalMediaPackage;
-
+    
     std::map<unsigned int, TeaDecode *> decodes;
 };
 
