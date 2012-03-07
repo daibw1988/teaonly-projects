@@ -9,7 +9,7 @@ int ReadFunc(void *opaque, uint8_t *buf, int buf_size) {
 }
 
 
-VideoPicture * FFDecode::DecodeVideoPacket(const unsigned char *data, size_t length) {
+VideoPicture * FFDecoder::DecodeVideoPacket(const unsigned char *data, size_t length) {
     if ( type != TEACODEC_TYPE_VIDEO)
         return NULL;
 
@@ -178,7 +178,7 @@ void FFDemux::decodeInit() {
             assert(pC != NULL);
             int ret = avcodec_open2(pCC, pC, NULL);
             assert(ret >= 0);
-            TeaDecode *dec = new FFDecode(pCC, pC);
+            TeaDecoder *dec = new FFDecoder(pCC, pC);
             decodes[i] = dec;
         } else if ( pFormatCtx->streams[i]->codec->codec_type == AVMEDIA_TYPE_AUDIO) {
             // TODO                    

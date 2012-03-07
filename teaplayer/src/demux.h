@@ -8,7 +8,7 @@ extern "C" {
 }
 #include "talk/base/thread.h" 
 #include "talk/base/messagequeue.h"
-#include "decode.h"
+#include "codec.h"
 
 class TeaDemux : public sigslot::has_slots<> {
 public:    
@@ -23,12 +23,12 @@ public:
     sigslot::signal0<> signalOverflow;
     sigslot::signal2<unsigned int, MediaPacket *> signalMediaPackage;
     
-    std::map<unsigned int, TeaDecode *> decodes;
+    std::map<unsigned int, TeaDecoder *> decodes;
 };
 
-class FFDecode: public TeaDecode {
+class FFDecoder: public TeaDecoder {
 public:
-    FFDecode(AVCodecContext *pCC, AVCodec *pC) {
+    FFDecoder(AVCodecContext *pCC, AVCodec *pC) {
         pCodecCtx = pCC;
         pCodec = pC;
         
@@ -40,7 +40,7 @@ public:
             type = TEACODEC_TYPE_UNKNOW;
     }
 
-    virtual ~FFDecode() {
+    virtual ~FFDecoder() {
         avcodec_close(pCodecCtx);
     }
     
