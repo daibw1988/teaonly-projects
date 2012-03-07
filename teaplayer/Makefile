@@ -2,7 +2,7 @@ AR = ar
 CC = g++
 
 TALK_INC_DIR =  .
-CFLAGS = -Wall -Wno-non-virtual-dtor -Wno-ctor-dtor-privacy -Wno-switch -fno-rtti -fno-exceptions -fvisibility=hidden -ffunction-sections -fdata-sections -O0 -DLOGGING=1 -DPOSIX -DLINUX -D_DEBUG -I$(TALK_INC_DIR)
+CFLAGS = -Wall -Wno-non-virtual-dtor -Wno-ctor-dtor-privacy -Wno-switch -fno-rtti -fno-exceptions -fvisibility=hidden -ffunction-sections -fdata-sections -O0 -DLOGGING=1 -DPOSIX -DLINUX -D_DEBUG -g -I$(TALK_INC_DIR)
 
 LIB_OBJS_ =
 include lib_build.mk

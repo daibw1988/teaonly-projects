@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <iostream>
 #include "media.h"
 #include "access.h"
 #include "demux.h"
@@ -19,6 +20,7 @@ TeaPlayer::TeaPlayer(TeaAccess *a, TeaDemux *d, TeaVideoOutput *vo):
     
     access->signalBeginofStream.connect(this, &TeaPlayer::onAccessBegin);
     access->signalEndOfStream.connect(this, &TeaPlayer::onAccessEnd);
+    access->signalData.connect(this, &TeaPlayer::onAccessData);
     demux->signalMediaPackage.connect(this, &TeaPlayer::onMediaPacket);
 
     state = TP_STOPED;
@@ -29,7 +31,7 @@ TeaPlayer::~TeaPlayer() {
 }
 
 void TeaPlayer::Play() {
-    
+    state = TP_PLAYING;
     demux->Open();
     access->Open();
 }
@@ -46,7 +48,6 @@ void TeaPlayer::onAccessBegin(bool isOK) {
     if ( isOK == false) {
         access->Close();    
         demux->Close();
-
     } else {
         vout->Start();
     }

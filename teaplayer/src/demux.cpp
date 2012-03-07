@@ -1,9 +1,11 @@
 #define UINT64_C(c)   c ## ULL
+#include <iostream>
 #include <assert.h>
 #include "demux.h"
 
 int ReadFunc(void *opaque, uint8_t *buf, int buf_size) {
-    return -1;
+    FFDemux *demux = (FFDemux *)opaque;
+    return demux->ReadFunc(buf, buf_size);    
 }
 
 
@@ -18,23 +20,25 @@ VideoPicture * FFDecode::DecodeVideoPacket(const unsigned char *data, size_t len
 
 FFDemux::FFDemux(const std::string &file) {
     targetFile = file;
-    av_register_all();
-
+    probeFailed = false;
     pFormatCtx = NULL;
     pIO = NULL;
     buffer_io = NULL;
-
-    thread = new talk_base::Thread();
-    thread->Start();
-
-    probeFailed = false;
     decodes.clear();
 
-    buffer_stream = new unsigned char[1024*1024];  
-    buffer_stream_length = 0;
     buffer_stream_size = 1024*1024*4;
+    buffer_stream = new unsigned char[buffer_stream_size];  
+    buffer_stream_length = 0;
     buffer_io = NULL;
     buffer_io_size = 1024*32;
+    buffer_probe_size = 1024*8;
+    pthread_mutex_init(&data_locker, NULL);
+    pthread_cond_init(&data_arrive_cond, NULL); 
+
+    
+    av_register_all();
+    thread = new talk_base::Thread();
+    thread->Start();
 }
 
 FFDemux::~FFDemux() {
@@ -56,6 +60,34 @@ FFDemux::~FFDemux() {
     buffer_io = NULL;
 }
 
+int FFDemux::ReadFunc(unsigned char *buf, int buf_size) {
+   
+    int ret = buf_size;
+    printf("In our ReadFunc\n");
+    pthread_mutex_lock(&data_locker); 
+    while(1) {
+        if ( buffer_stream_length == -1) {          //streaming is end
+            ret = -1;
+            break;
+        }
+        if ( buffer_stream_length >= buf_size) {
+            memcpy(buf, buffer_stream, buf_size);
+            buffer_stream_length -= buf_size;
+            memmove(buffer_stream, &buffer_stream[buf_size], buffer_stream_length);
+            break;
+        } else {
+            memcpy(buf, buffer_stream, buffer_stream_length);
+            buf_size -= buffer_stream_length; 
+            buf += buffer_stream_length;
+            buffer_stream_length = 0;
+        }
+        pthread_cond_wait(&data_arrive_cond, &data_locker);
+    }
+    pthread_mutex_unlock(&data_locker);
+
+    return ret;
+}
+
 bool FFDemux::Open() {
 
     // create io for libavformat
@@ -64,7 +96,7 @@ bool FFDemux::Open() {
 							buffer_io_size/2,
 							0,
 							this,
-							ReadFunc,
+							::ReadFunc,
 							0,
 							0); 
     pIO->seekable = 0;
@@ -74,9 +106,10 @@ bool FFDemux::Open() {
     pFormatCtx = NULL;
 
     probe_data.filename = targetFile.c_str(); 
-    probe_data.buf_size = 1024*8;
+    probe_data.buf_size = buffer_probe_size;
     probe_data.buf = (unsigned char *)malloc(probe_data.buf_size);
-
+    
+    buffer_stream_length = 0;
     return true;
 }
 
@@ -91,14 +124,21 @@ bool FFDemux::PushNewData(const unsigned char *data, size_t length) {
     if ( pFormatCtx == NULL) {
         memcpy( &buffer_stream[buffer_stream_length], data, length);
         buffer_stream_length += length;
-        if ( length >= buffer_io_size ) { 
-            memcpy( &buffer_io, buffer_stream, buffer_io_size);
-            doProbe(); 
+        if ( (unsigned int)buffer_stream_length >= buffer_probe_size ) { 
+            memcpy(probe_data.buf, buffer_stream, buffer_probe_size);
+            prepareProbe(); 
         }
     } else {
-        
+        if ( (buffer_stream_length + length )>= buffer_stream_size) {
+            // internal buffer is full
+            return false;
+        } 
+        pthread_mutex_lock(&data_locker);
+        memcpy( &buffer_stream[buffer_stream_length], data, length);
+        buffer_stream_length += length;
+        pthread_mutex_unlock(&data_locker);
+        pthread_cond_signal(&data_arrive_cond);    
     }
-
     return true;    
 }
 
@@ -112,26 +152,14 @@ void FFDemux::OnMessage(talk_base::Message *msg) {
     }
 }
 
-void FFDemux::doProbe() {
-    AVInputFormat *pAV = av_probe_input_format(&probe_data, 1);
-    if ( pAV == NULL) {
+void FFDemux::prepareProbe() {
+    pFormat = av_probe_input_format(&probe_data, 1);
+    if ( pFormat == NULL) {
         goto probe_failed;
     }
     pFormatCtx = avformat_alloc_context();
     pFormatCtx->pb = pIO;
 
-    if( avformat_open_input(&pFormatCtx, targetFile.c_str(), pAV, 0) < 0){ 
-        pFormatCtx = 0;
-        goto probe_failed;
-    }   
-    pFormatCtx->probesize = 8000;
-    if(av_find_stream_info(pFormatCtx)<0){
-        goto probe_failed;        
-    }   
-    
-    //av_dump_format(pFormatCtx, 0, "null", 0);
-    decodeInit(); 
-    signalProbed(true);
     thread->Post(this, MSG_DEMUX_START);
     return;
 
@@ -158,7 +186,22 @@ void FFDemux::decodeInit() {
     }
 }
 
-void FFDemux::doDemux() {
+void FFDemux::doDemux() { 
+    if( avformat_open_input(&pFormatCtx, targetFile.c_str(), pFormat, 0) < 0){ 
+        pFormatCtx = 0;
+        goto probe_failed;
+    }  
+    
+    pFormatCtx->probesize = 8000;
+    if(av_find_stream_info(pFormatCtx)<0){
+        goto probe_failed;        
+    }   
+    av_dump_format(pFormatCtx, 0, "null", 0);
+    decodeInit(); 
+    signalProbed(true);
 
+probe_failed:
+    probeFailed = true;
+    signalProbed(false);  
 }
 

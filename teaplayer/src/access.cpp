@@ -42,7 +42,7 @@ void FileAccess::OnMessage(talk_base::Message *msg) {
 }
 
 void FileAccess::doAccess() {
-    static unsigned char buffer[1024*8];        
+    static unsigned char buffer[1024*6];        
     
     if ( mediaFile == NULL)
         return;
@@ -55,8 +55,8 @@ void FileAccess::doAccess() {
     
     int ret = fread(buffer, 1, sizeof(buffer), mediaFile);
     if ( ret > 0) {
-       signalData(buffer, ret); 
-       thread->PostDelayed(80, this, MSG_ACCESS_TIMER);
+        signalData(buffer, ret); 
+        thread->PostDelayed(80, this, MSG_ACCESS_TIMER);
     }
 }
 
