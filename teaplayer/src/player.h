@@ -7,7 +7,7 @@
 
 class TeaAccess;
 class TeaDemux;
-class TeaDecode;
+class TeaDecodeTask;
 class TeaVideoOutput;
 class MediaPacket;
 class TeaMedia;
@@ -24,8 +24,6 @@ public:
     TeaPlayer(TeaAccess *a, TeaDemux *d, TeaVideoOutput *vo);
     ~TeaPlayer();
 
-    void setDecode(unsigned int n, TeaDecode *d);
-   
     PlayerState State() {
         return state;
     };
@@ -37,13 +35,12 @@ private:
     void onAccessBegin(bool isOK);
     void onAccessData(const unsigned char *p, size_t length);
     void onAccessEnd();
-    void onMediaPacket(unsigned int n, MediaPacket *p);
-    void onMediaData(unsigned int n, void *m);
-    
+    void onMediaPacket(MediaPacket *p);
 
 private:
     TeaAccess *access;
     TeaDemux *demux;
+    TeaDecodeTask *decode;
     TeaVideoOutput *vout;
 
     PlayerState state;

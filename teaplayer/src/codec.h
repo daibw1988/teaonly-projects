@@ -1,5 +1,5 @@
-#ifndef _TEADECODE_H_
-#define _TEADECODE_H_
+#ifndef _TEACODEC_H_
+#define _TEACODEC_H_
 
 #include "talk/base/thread.h" 
 #include "talk/base/messagequeue.h"

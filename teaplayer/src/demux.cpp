@@ -30,7 +30,7 @@ FFDemux::FFDemux(const std::string &file) {
     buffer_stream = new unsigned char[buffer_stream_size];  
     buffer_stream_length = 0;
     buffer_io = NULL;
-    buffer_io_size = 1024*8;
+    buffer_io_size = 1024*2;
     buffer_probe_size = 1024*8;
     pthread_mutex_init(&data_locker, NULL);
     pthread_cond_init(&data_arrive_cond, NULL); 
@@ -210,7 +210,6 @@ void FFDemux::doDemux() {
         }   
         
         std::cout << "Get AV packet =  " << newPacket.stream_index << std::endl;
-
     }
 
 

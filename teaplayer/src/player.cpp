@@ -68,18 +68,7 @@ void TeaPlayer::onAccessData(const unsigned char *p, size_t length) {
 }
 
 
-void TeaPlayer::onMediaPacket(unsigned int n, MediaPacket *p) {
+void TeaPlayer::onMediaPacket(MediaPacket *p) {
 
-}
-
-void TeaPlayer::onMediaData(unsigned int n, void *m) {
-    TeaDecode *decode = demux->decodes[n];
-    assert(decode != NULL);
-
-    if ( decode->type == TEACODEC_TYPE_VIDEO) {
-        VideoPicture *p = (VideoPicture *)m;
-        if ( ! vout->PushVideoPicture(p) )
-            delete p;
-    }
 }
 
