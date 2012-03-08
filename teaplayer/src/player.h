@@ -21,7 +21,7 @@ public:
     }PlayerState;
 
 public:
-    TeaPlayer(TeaAccess *a, TeaDemux *d, TeaVideoOutput *vo);
+    TeaPlayer(TeaAccess *a, TeaDemux *d, TeaDecodeTask *dec, TeaVideoOutput *vo);
     ~TeaPlayer();
 
     PlayerState State() {

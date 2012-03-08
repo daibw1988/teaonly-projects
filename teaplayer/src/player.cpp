@@ -9,15 +9,17 @@
 #include "video.h"
 #include "player.h"
 
-TeaPlayer::TeaPlayer(TeaAccess *a, TeaDemux *d, TeaVideoOutput *vo):
+TeaPlayer::TeaPlayer(TeaAccess *a, TeaDemux *d, TeaDecodeTask *dec, TeaVideoOutput *vo):
         access(a),
         demux(d),
+        decode(dec),
         vout(vo){
     // building player 
     access->Close();
     demux->Close(); 
+    decode->Stop();
     vout->Stop();
-    
+
     access->signalBeginofStream.connect(this, &TeaPlayer::onAccessBegin);
     access->signalEndOfStream.connect(this, &TeaPlayer::onAccessEnd);
     access->signalData.connect(this, &TeaPlayer::onAccessData);
@@ -37,11 +39,11 @@ void TeaPlayer::Play() {
 }
 
 void TeaPlayer::Pause() {
-
+    
 }
 
 void TeaPlayer::Stop() {
-
+        
 }
 
 void TeaPlayer::onAccessBegin(bool isOK) {
@@ -69,6 +71,5 @@ void TeaPlayer::onAccessData(const unsigned char *p, size_t length) {
 
 
 void TeaPlayer::onMediaPacket(MediaPacket *p) {
-
 }
 
