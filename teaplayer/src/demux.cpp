@@ -209,9 +209,14 @@ void FFDemux::doDemux() {
             goto stream_end;
         }   
         
-        std::cout << "Get AV packet =  " << newPacket.stream_index << std::endl;
+        //std::cout << "Get AV packet =  " << newPacket.stream_index << " PTS = " << newPacket.pts << "  DTS = " << newPacket.dts << std::endl;
+        MediaPacket *pkt = new MediaPacket( newPacket.size );
+        pkt->pts = newPacket.pts;
+        pkt->dts = newPacket.dts;
+        pkt->duration = newPacket.duration;
+        memcpy(pkt->data, newPacket.data, newPacket.size); 
+        signalMediaPacket(pkt);
     }
-
 
 probe_failed:
     probeFailed = true;

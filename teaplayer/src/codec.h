@@ -14,8 +14,13 @@ typedef enum {
 
 class MediaPacket {
 public:
+    MediaPacket(unsigned int size) {
+        data = new unsigned char[size + 8 - (size%8) ];
+    }
+public:
     MediaTime pts;
     MediaTime dts;
+    int       duration;
     unsigned int channel; 
     unsigned char *data;
     unsigned int length;

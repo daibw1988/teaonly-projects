@@ -28,8 +28,8 @@ void TeaDecodeTask::Start() {
 }
 
 void TeaDecodeTask::Stop() {
-    assert ( state != ST_STOPPED);
     state = ST_STOPPED;
+    pthread_cond_signal(&control_cond);
 }
 
 void TeaDecodeTask::Pause() {
@@ -82,6 +82,9 @@ void TeaDecodeTask::doDecode() {
             pthread_cond_wait(&control_cond, &control_mutex); 
             continue;
         }
+
+        // TODO 
+        printf("new package arrive....\n");
     }
     
     //cleaning avbuffer,
