@@ -23,32 +23,20 @@ public:
     sigslot::signal0<> signalOverflow;
     sigslot::signal1<MediaPacket *> signalMediaPacket;
     
-    std::map<unsigned int, TeaDecoder *> decodes;
+    std::map<unsigned int, TeaDecoder *> decoders;
 };
 
 class FFDecoder: public TeaDecoder {
 public:
-    FFDecoder(AVCodecContext *pCC, AVCodec *pC) {
-        pCodecCtx = pCC;
-        pCodec = pC;
-        
-        if ( pCodecCtx->codec_type == AVMEDIA_TYPE_AUDIO)
-            type = TEACODEC_TYPE_VIDEO;
-        else if ( pCodecCtx->codec_type == AVMEDIA_TYPE_AUDIO)
-            type = TEACODEC_TYPE_AUDIO;
-        else
-            type = TEACODEC_TYPE_UNKNOW;
-    }
-
+    FFDecoder(AVCodecContext *pCC, AVCodec *pC);
     virtual ~FFDecoder() {
         avcodec_close(pCodecCtx);
     }
-    
-    virtual VideoPicture* DecodeVideoPacket(const unsigned char *data, size_t legth);
-
+    virtual VideoPicture* DecodeVideoPacket(MediaPacket *pkt);
 private:
     AVCodecContext *pCodecCtx;
     AVCodec        *pCodec;
+    AVFrame        *pFrame;
 };
 
 class FFDemux:public TeaDemux, talk_base::MessageHandler {

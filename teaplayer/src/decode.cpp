@@ -83,8 +83,16 @@ void TeaDecodeTask::doDecode() {
             continue;
         }
 
-        // TODO 
-        printf("new package arrive....\n");
+        TeaDecoder *dec = demux->decoders[ target->channel];
+        if ( dec != NULL) {
+            if ( dec->type == TEACODEC_TYPE_VIDEO) {
+                VideoPicture *pic = dec->DecodeVideoPacket( target );
+                if ( pic != NULL) 
+                    signalVideoPicture(pic);
+                delete target;
+            }
+        }
+
     }
     
     //cleaning avbuffer,
@@ -95,5 +103,4 @@ void TeaDecodeTask::doDecode() {
     }
     videoBuffer.clear();
 }
-
 

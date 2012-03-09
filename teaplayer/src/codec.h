@@ -17,13 +17,16 @@ public:
     MediaPacket(unsigned int size) {
         data = new unsigned char[size + 8 - (size%8) ];
     }
+    ~MediaPacket(){
+        delete data;
+    }
 public:
     MediaTime pts;
     MediaTime dts;
     int       duration;
     unsigned int channel; 
     unsigned char *data;
-    unsigned int length;
+    unsigned int size;
     void *priv;
 };
 

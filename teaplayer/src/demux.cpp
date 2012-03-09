@@ -8,13 +8,39 @@ int ReadFunc(void *opaque, uint8_t *buf, int buf_size) {
     return demux->ReadFunc(buf, buf_size);    
 }
 
+FFDecoder::FFDecoder(AVCodecContext *pCC, AVCodec *pC) {
+    pCodecCtx = pCC;
+    pCodec = pC;
+    pFrame = NULL;
 
-VideoPicture * FFDecoder::DecodeVideoPacket(const unsigned char *data, size_t length) {
+    if ( pCodecCtx->codec_type == AVMEDIA_TYPE_VIDEO) {
+        type = TEACODEC_TYPE_VIDEO;
+        pFrame = avcodec_alloc_frame();
+    }else if ( pCodecCtx->codec_type == AVMEDIA_TYPE_AUDIO)
+        type = TEACODEC_TYPE_AUDIO;
+    else
+        type = TEACODEC_TYPE_UNKNOW;
+}
+
+VideoPicture * FFDecoder::DecodeVideoPacket(MediaPacket *pkt) {
     if ( type != TEACODEC_TYPE_VIDEO)
         return NULL;
-
+    
+    
+    //convert MediaPacket to FFMPEG's AVPacket
+    AVPacket ffpkt;
+    ffpkt.data = pkt->data;
+    ffpkt.size = pkt->size;
+    ffpkt.pts = pkt->pts;
+    ffpkt.dts = pkt->dts;
+    
     int isFinished;
-    avcodec_decode_video2(pCodecCtx, NULL, &isFinished, NULL); 
+    avcodec_decode_video2(pCodecCtx, pFrame, &isFinished, &ffpkt);
+    if ( !isFinished ) 
+        return NULL;
+
+    //convert FFMPEG's AVFrame to VideoPicture
+
     return NULL;
 }
 
@@ -24,7 +50,7 @@ FFDemux::FFDemux(const std::string &file) {
     pFormatCtx = NULL;
     pIO = NULL;
     buffer_io = NULL;
-    decodes.clear();
+    decoders.clear();
 
     buffer_stream_size = 1024*1024*4;
     buffer_stream = new unsigned char[buffer_stream_size];  
@@ -46,7 +72,7 @@ FFDemux::~FFDemux() {
     delete thread;
     
     /*
-    for(std::map<unsigned int, TeaDecode *>::iterator i=decodes.begin(); i != decodes.end(); i++) {
+    for(std::map<unsigned int, TeaDecode *>::iterator i=decoders.begin(); i != decoders.end(); i++) {
         (*i).second->Open();
     } 
     */
@@ -63,7 +89,6 @@ FFDemux::~FFDemux() {
 int FFDemux::ReadFunc(unsigned char *buf, int buf_size) {
    
     int ret = buf_size;
-    printf("In our ReadFunc\n");
     pthread_mutex_lock(&data_locker); 
     while(1) {
         if ( buffer_stream_length == -1) {          //streaming is end
@@ -102,7 +127,7 @@ bool FFDemux::Open() {
     pIO->seekable = 0;
 
     probeFailed = false;
-    decodes.clear();
+    decoders.clear();
     pFormatCtx = NULL;
 
     probe_data.filename = targetFile.c_str(); 
@@ -179,7 +204,7 @@ void FFDemux::decodeInit() {
             int ret = avcodec_open2(pCC, pC, NULL);
             assert(ret >= 0);
             TeaDecoder *dec = new FFDecoder(pCC, pC);
-            decodes[i] = dec;
+            decoders[i] = dec;
         } else if ( pFormatCtx->streams[i]->codec->codec_type == AVMEDIA_TYPE_AUDIO) {
             // TODO                    
         }
@@ -214,6 +239,8 @@ void FFDemux::doDemux() {
         pkt->pts = newPacket.pts;
         pkt->dts = newPacket.dts;
         pkt->duration = newPacket.duration;
+        pkt->size = newPacket.size;
+        pkt->channel = newPacket.stream_index;
         memcpy(pkt->data, newPacket.data, newPacket.size); 
         signalMediaPacket(pkt);
     }
