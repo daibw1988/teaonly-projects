@@ -23,7 +23,29 @@ public:
 
     void PushMediaPacket(MediaPacket *pkt);
 
+    MediaTime BufferedVideoLength() {
+        talk_base::CritScope lock(&mutex_); 
+        if ( videoBuffer.size() >= 2) {
+            MediaTime delta = videoBuffer.back()->pts - videoBuffer.front()->pts;
+            return delta;
+        } 
+        return 0;
+    }
+    unsigned int BufferedPictures() {
+        talk_base::CritScope lock(&mutex_); 
+        return videoBuffer.size();
+    }
+    MediaTime FirstPictureTime() {
+        talk_base::CritScope lock(&mutex_); 
+        return videoBuffer.front()->pts;
+    }
+    MediaTime LastPictureTime() {
+        talk_base::CritScope lock(&mutex_); 
+        return videoBuffer.back()->pts;
+    }
+
     sigslot::signal1<VideoPicture *> signalVideoPicture;
+
 protected:
     void OnMessage(talk_base::Message *msg);
 
@@ -43,7 +65,7 @@ private:
     
     pthread_cond_t  control_cond;                                         
     pthread_mutex_t control_mutex;
-    pthread_mutex_t avbuffer_locker;
+    talk_base::CriticalSection mutex_;
     talk_base::Thread *thread; 
 
     TeaDemux *demux;

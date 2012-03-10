@@ -12,7 +12,7 @@ class TeaVideoOutput;
 class MediaPacket;
 class TeaMedia;
 
-class TeaPlayer : public sigslot::has_slots<> {
+class TeaPlayer : public sigslot::has_slots<>, public talk_base::MessageHandler{
 public:
     typedef enum {
         TP_STOPED,
@@ -31,19 +31,30 @@ public:
     void Pause();
     void Stop();
 
+protected:
+    void OnMessage(talk_base::Message *msg);    
+
 private:
     void onAccessBegin(bool isOK);
     void onAccessData(const unsigned char *p, size_t length);
     void onAccessEnd();
     void onMediaPacket(MediaPacket *p);
+    void doControl();
 
 private:
+    enum {
+        MSG_CONTROL_TIMER,
+    };
     TeaAccess *access;
     TeaDemux *demux;
     TeaDecodeTask *decode;
     TeaVideoOutput *vout;
 
     PlayerState state;
+    MediaTime   mediaTime;
+    MediaTime   localTime;
+
+    talk_base::Thread *thread;
 };
 
 #endif

@@ -11,7 +11,7 @@ int main(int argc, const char *argv[]) {
     
     FFDemux *demux = new FFDemux("live.flv");
     TeaDecodeTask *decode = new TeaDecodeTask(demux);
-    TeaVideoOutput *vout = new TeaVideoOutput(1000,1000);
+    TeaVideoOutput *vout = new TeaVideoOutput();
     TeaPlayer *player = new TeaPlayer(access, demux, decode, vout);
     player->Play();
 

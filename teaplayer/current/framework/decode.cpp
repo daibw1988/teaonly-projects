@@ -6,7 +6,6 @@
 TeaDecodeTask::TeaDecodeTask(TeaDemux *dm) {
     demux = dm;
     
-    pthread_mutex_init(&avbuffer_locker, NULL);
     pthread_mutex_init(&control_mutex, NULL);
     pthread_cond_init(&control_cond, NULL); 
     
@@ -44,9 +43,8 @@ void TeaDecodeTask::Resume() {
 void TeaDecodeTask::PushMediaPacket(MediaPacket *pkt) {
     assert( state != ST_STOPPED);
 
-    pthread_mutex_lock(&avbuffer_locker);
+    talk_base::CritScope lock(&mutex_); 
     videoBuffer.push_back(pkt);
-    pthread_mutex_unlock(&avbuffer_locker);
     
     pthread_cond_signal(&control_cond);
 }
@@ -70,13 +68,14 @@ void TeaDecodeTask::doDecode() {
         }
         
         MediaPacket *target = NULL;
-
-        pthread_mutex_lock(&avbuffer_locker);
-        if ( videoBuffer.size() > 0) {
-            target = videoBuffer.front();
-            videoBuffer.pop_front();
+        
+        {
+            talk_base::CritScope lock(&mutex_); 
+            if ( videoBuffer.size() > 0) {
+                target = videoBuffer.front();
+                videoBuffer.pop_front();
+            }
         }
-        pthread_mutex_unlock(&avbuffer_locker);
 
         if ( target == NULL) {
             pthread_cond_wait(&control_cond, &control_mutex); 

@@ -8,17 +8,12 @@
 
 class TeaVideoOutput: public sigslot::has_slots<>, public talk_base::MessageHandler{
 public:    
-    TeaVideoOutput(MediaTime, MediaTime);
+    TeaVideoOutput();
     virtual ~TeaVideoOutput();
 
-    void Start();
-    void Pause();
-    void Stop();
-    bool PushVideoPicture(VideoPicture *);
+    void PushVideoPicture(VideoPicture *);
+    VideoPicture *PullVideoPicture();
 
-    MediaTime PlayedTime() {
-        return mediaTime;
-    };
     MediaTime BufferedLength() {
         talk_base::CritScope lock(&mutex_); 
         if ( videoPictureFIFO.size() >= 2) {
@@ -40,40 +35,21 @@ public:
         return videoPictureFIFO.back()->mt;
     }
 
-
-    sigslot::signal0<> signalBufferOverflow;
-    sigslot::signal0<> signalBufferDone;
-    sigslot::signal0<> signalBufferUnderflow;
+    virtual void RenderVideoPicture();
 
 protected:
-    virtual void RenderVideoPicture( VideoPicture *target);
     virtual void OnMessage(talk_base::Message *msg);
 
 private:    
     void doRender();
-    void doBuffering();
-    void doPlaying(); 
 
 private:
     enum {
-        MSG_RENDER_TIMER,
+        MSG_DO_RENDER,
     };
-    enum {
-        VO_STATE_STOPEED,
-        VO_STATE_PLAYING,
-        VO_STATE_BUFFERING,
-        VO_STATE_PAUSED,
-    }state;
-    
     talk_base::Thread *thread;
-
-    MediaTime beginFullness;
-    MediaTime overFullness;
-    
     std::list<VideoPicture *> videoPictureFIFO;
-    MediaTime   mediaTime;
     talk_base::CriticalSection mutex_;
-
 };
 
 #endif

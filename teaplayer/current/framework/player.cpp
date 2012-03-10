@@ -16,7 +16,6 @@ TeaPlayer::TeaPlayer(TeaAccess *a, TeaDemux *d, TeaDecodeTask *dec, TeaVideoOutp
     access->Close();
     demux->Close(); 
     decode->Stop();
-    vout->Stop();
 
     access->signalBeginofStream.connect(this, &TeaPlayer::onAccessBegin);
     access->signalEndOfStream.connect(this, &TeaPlayer::onAccessEnd);
@@ -24,6 +23,7 @@ TeaPlayer::TeaPlayer(TeaAccess *a, TeaDemux *d, TeaDecodeTask *dec, TeaVideoOutp
     demux->signalMediaPacket.connect(this, &TeaPlayer::onMediaPacket);
 
     state = TP_STOPED;
+    mediaTime = BAD_TIME;
 }
 
 TeaPlayer::~TeaPlayer() {
@@ -32,6 +32,9 @@ TeaPlayer::~TeaPlayer() {
 
 void TeaPlayer::Play() {
     state = TP_PLAYING;
+    mediaTime = 0;
+    thread->Post(this, MSG_CONTROL_TIMER);
+
     decode->Start();
     demux->Open();
     access->Open();
@@ -45,20 +48,25 @@ void TeaPlayer::Stop() {
         
 }
 
+void TeaPlayer::OnMessage(talk_base::Message *msg) {
+    switch(msg->message_id) {
+        case MSG_CONTROL_TIMER:
+            doControl();
+            break;
+    }
+}
+
 void TeaPlayer::onAccessBegin(bool isOK) {
     if ( isOK == false) {
         access->Close();    
         demux->Close();
-    } else {
-        vout->Start();
-    }
+    } 
 }
 
 void TeaPlayer::onAccessEnd() {
     access->Close();    
     demux->Close();
 
-    vout->Stop();
 }
 
 void TeaPlayer::onAccessData(const unsigned char *p, size_t length) {
@@ -68,8 +76,12 @@ void TeaPlayer::onAccessData(const unsigned char *p, size_t length) {
     demux->PushNewData(p, length);    
 }
 
-
 void TeaPlayer::onMediaPacket(MediaPacket *p) {
     decode->PushMediaPacket(p);
 }
+
+void TeaPlayer::doControl() {
+    
+}
+
 

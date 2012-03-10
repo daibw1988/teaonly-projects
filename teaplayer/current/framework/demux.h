@@ -23,7 +23,6 @@ public:
     virtual bool PushNewData(const unsigned char *data, size_t length) = 0;
 
     sigslot::signal1<bool> signalProbed;
-    sigslot::signal0<> signalOverflow;
     sigslot::signal1<MediaPacket *> signalMediaPacket;
     
     std::map<unsigned int, TeaDecoder *> decoders;
