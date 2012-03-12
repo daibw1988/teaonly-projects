@@ -3,10 +3,15 @@
 
 #ifdef LINUX
 #include <stdint.h>
+#include <sys/time.h>
+
 typedef uint64_t MediaTime;
 const MediaTime BAD_TIME = (uint64_t)(-1);
-inline MediaTime currentTime() {
-   return 0;
+inline MediaTime CurrentTime() {
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    MediaTime ret = tv.tv_sec * 1000 + tv.tv_usec / 1000;
+    return ret;    
 }
 #elif WIN32
 // TODO

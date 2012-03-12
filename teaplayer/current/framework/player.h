@@ -4,6 +4,7 @@
 #include <map>
 #include "talk/base/thread.h" 
 #include "talk/base/messagequeue.h"
+#include "base.h"
 
 class TeaAccess;
 class TeaDemux;
@@ -12,12 +13,15 @@ class TeaVideoOutput;
 class MediaPacket;
 class TeaMedia;
 
-class TeaPlayer : public sigslot::has_slots<>, public talk_base::MessageHandler{
+
+class TeaPlayer : public sigslot::has_slots<>, talk_base::MessageHandler{
 public:
     typedef enum {
         TP_STOPED,
         TP_PLAYING,
         TP_PAUSED,
+        TP_BUFFERING,
+        TP_CATCHUP,
     }PlayerState;
 
 public:
@@ -39,7 +43,11 @@ private:
     void onAccessData(const unsigned char *p, size_t length);
     void onAccessEnd();
     void onMediaPacket(MediaPacket *p);
+    void onVideoPicture(VideoPicture *p);
+    int totalBufferedVideoPictures();
+    MediaTime totalBufferedVideoLength();
     void doControl();
+
 
 private:
     enum {
@@ -49,10 +57,17 @@ private:
     TeaDemux *demux;
     TeaDecodeTask *decode;
     TeaVideoOutput *vout;
-
     PlayerState state;
-    MediaTime   mediaTime;
-    MediaTime   localTime;
+    
+    struct{
+        unsigned int overNess;
+        unsigned int fullNess;
+        unsigned int beginNess;
+        MediaTime controlTime;
+        MediaTime lastDelay;
+        MediaTime mediaTime;
+        MediaTime localTime;
+    }timing;
 
     talk_base::Thread *thread;
 };
