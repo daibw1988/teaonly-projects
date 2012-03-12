@@ -33,10 +33,12 @@ VideoPicture * FFDecoder::DecodeVideoPacket(MediaPacket *pkt) {
     
     int isFinished;
     avcodec_decode_video2(pCodecCtx, pFrame, &isFinished, &ffpkt);
+    
+    delete pkt;
+
     if ( !isFinished ) 
         return NULL;
-
-    //convert FFMPEG's AVFrame to VideoPicture
+   
 
     return NULL;
 }

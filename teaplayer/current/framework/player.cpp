@@ -7,15 +7,14 @@
 #include "vout.h"
 #include "player.h"
 
-TeaPlayer::TeaPlayer(TeaAccess *a, TeaDemux *d, TeaDecodeTask *dec, TeaVideoOutput *vo):
+TeaPlayer::TeaPlayer(TeaAccess *a, TeaDemux *d, TeaVideoOutput *vo):
         access(a),
         demux(d),
-        decode(dec),
         vout(vo){
     // building player 
     access->Close();
     demux->Close(); 
-    decode->Reset();
+    decode = new TeaDecodeTask(demux);
 
     state = TP_STOPED;
     timing.jitterDelay = 2000;
@@ -31,8 +30,7 @@ TeaPlayer::TeaPlayer(TeaAccess *a, TeaDemux *d, TeaDecodeTask *dec, TeaVideoOutp
     demux->signalProbed.connect(this, &TeaPlayer::onDemuxProbed);
     demux->signalMediaPacket.connect(this, &TeaPlayer::onMediaPacket);
     decode->signalVideoPicture.connect(this, &TeaPlayer::onVideoPicture);
-    vout->signalPictureRendered.connect(this, &TeaPlayer::onPictureRendered);
-    
+    vout->signalPictureRendered.connect(this, &TeaPlayer::onPictureRendered);    
 }
 
 TeaPlayer::~TeaPlayer() {
@@ -44,11 +42,7 @@ void TeaPlayer::Play() {
 
     demux->Open();
     access->Open();
-}
-
-void TeaPlayer::Pause() {
-    
-}
+}   
 
 void TeaPlayer::Stop() {
         
@@ -64,9 +58,9 @@ void TeaPlayer::OnMessage(talk_base::Message *msg) {
 
 void TeaPlayer::onAccessBegin(bool isOK) {
     if ( isOK == false) {
-        access->Close();    
+        access->Close(); 
         demux->Close();
-    } 
+    }
 }
 
 void TeaPlayer::onAccessEnd() {
@@ -117,12 +111,8 @@ void TeaPlayer::doControl() {
         case TP_BUFFERING:
             doBuffering();
             break;
-        case TP_PAUSED:
-            doPause();
-            break;
     }
 
-    printf("MediaTime = %lld\n", timing.mediaTime);
     if ( state != TP_STOPED)
         thread->PostDelayed(5, this, MSG_CONTROL_TIMER);
 }
@@ -141,6 +131,5 @@ void TeaPlayer::doPlay() {
     }
 }
 
-void TeaPlayer::doPause() {
 
-}
+

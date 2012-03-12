@@ -71,7 +71,7 @@ void TeaDecodeTask::doDecodeVideo() {
         assert(dec->type == TEACODEC_TYPE_VIDEO);
 
         VideoPicture *pic = dec->DecodeVideoPacket( target );
-        printf("Decoding one frame!\n");
+        
         if ( pic != NULL) 
             signalVideoPicture(pic);
     }

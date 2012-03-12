@@ -20,19 +20,17 @@ public:
         TP_STOPED,
         TP_OPENIGN,
         TP_PLAYING,
-        TP_PAUSED,
         TP_BUFFERING,
     }PlayerState;
 
 public:
-    TeaPlayer(TeaAccess *a, TeaDemux *d, TeaDecodeTask *dec, TeaVideoOutput *vo);
+    TeaPlayer(TeaAccess *a, TeaDemux *d, TeaVideoOutput *vo);
     ~TeaPlayer();
 
     PlayerState State() {
         return state;
     };
     void Play();
-    void Pause();
     void Stop();
 
 protected:
@@ -50,6 +48,7 @@ private:
     void doControl();
     void doPlay();
     void doBuffering();
+
     void doPause();
 
 private:
