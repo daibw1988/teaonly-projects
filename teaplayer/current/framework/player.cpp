@@ -11,9 +11,7 @@ TeaPlayer::TeaPlayer(TeaAccess *a, TeaDemux *d, TeaVideoOutput *vo):
         access(a),
         demux(d),
         vout(vo){
-    // building player 
-    access->Close();
-    demux->Close(); 
+    
     decode = new TeaDecodeTask(demux);
 
     state = TP_STOPED;
@@ -22,7 +20,6 @@ TeaPlayer::TeaPlayer(TeaAccess *a, TeaDemux *d, TeaVideoOutput *vo):
     timing.localTime = BAD_TIME; 
     thread = new talk_base::Thread();
     thread->Start();
-
 
     access->signalBeginofStream.connect(this, &TeaPlayer::onAccessBegin);
     access->signalEndOfStream.connect(this, &TeaPlayer::onAccessEnd);
@@ -34,7 +31,8 @@ TeaPlayer::TeaPlayer(TeaAccess *a, TeaDemux *d, TeaVideoOutput *vo):
 }
 
 TeaPlayer::~TeaPlayer() {
-     
+    delete thread;
+    delete decode;
 }
 
 void TeaPlayer::Play() {
@@ -45,7 +43,14 @@ void TeaPlayer::Play() {
 }   
 
 void TeaPlayer::Stop() {
-        
+    access->Close();
+    demux->Close();
+
+    decode->Reset();
+
+    state = TP_STOPED;    
+    thread->Clear(this);
+    thread->Stop();
 }
 
 void TeaPlayer::OnMessage(talk_base::Message *msg) {
@@ -58,14 +63,12 @@ void TeaPlayer::OnMessage(talk_base::Message *msg) {
 
 void TeaPlayer::onAccessBegin(bool isOK) {
     if ( isOK == false) {
-        access->Close(); 
-        demux->Close();
+        Stop();
     }
 }
 
 void TeaPlayer::onAccessEnd() {
-    access->Close();  
-    demux->Close();
+    Stop();
 }
 
 void TeaPlayer::onAccessData(const unsigned char *p, size_t length) {
@@ -77,8 +80,11 @@ void TeaPlayer::onAccessData(const unsigned char *p, size_t length) {
 
 void TeaPlayer::onDemuxProbed(bool isOK) {
     if ( isOK) {
+        printf("KAKAK\n");
         state = TP_BUFFERING;
         thread->Post(this, MSG_CONTROL_TIMER);
+    } else {
+        Stop();
     }
 }
 
@@ -130,6 +136,4 @@ void TeaPlayer::doPlay() {
         }
     }
 }
-
-
 

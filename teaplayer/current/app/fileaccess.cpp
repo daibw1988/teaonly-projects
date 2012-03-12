@@ -9,6 +9,7 @@ FileAccess::FileAccess(std::string fileName) {
 }
 
 FileAccess::~FileAccess() {
+    delete thread;
     if ( mediaFile != NULL)
         fclose(mediaFile);
 }
@@ -19,8 +20,14 @@ bool FileAccess::Open() {
 }
 
 void FileAccess::Close() {
-    thread->Clear(this);    
+    FILE *temp = mediaFile;
     mediaFile = NULL;
+    thread->Stop();
+
+    if ( temp != NULL) {
+        fclose(temp);
+        mediaFile = NULL;
+    }
 }
 
 void FileAccess::OnMessage(talk_base::Message *msg) {
@@ -37,22 +44,26 @@ void FileAccess::OnMessage(talk_base::Message *msg) {
         case MSG_ACCESS_TIMER:
             doAccess();
             break;
+        case MSG_ACCESS_STOP:
+            thread->Clear(this);
+            break;
     }        
 }
 
 void FileAccess::doAccess() {
     static unsigned char buffer[1024*6];        
-    
-    if ( mediaFile == NULL)
+    FILE *target = mediaFile; 
+
+    if ( target == NULL)
         return;
 
-    if ( feof(mediaFile) ) {
+    if ( feof(target) ) {
         mediaFile = NULL;
         signalEndOfStream();
         return;
     }  
     
-    int ret = fread(buffer, 1, sizeof(buffer), mediaFile);
+    int ret = fread(buffer, 1, sizeof(buffer), target);
     if ( ret > 0) {
         signalData(buffer, ret); 
         thread->PostDelayed(80, this, MSG_ACCESS_TIMER);

@@ -13,7 +13,7 @@ int main(int argc, const char *argv[]) {
     TeaPlayer *player = new TeaPlayer(access, demux, vout);
     
     player->Play();
-    for (int i = 0; i < 30; i++) {
+    for (int i = 0; i < 10; i++) {
         sleep(1);
     }
     player->Stop();

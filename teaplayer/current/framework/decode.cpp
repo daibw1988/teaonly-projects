@@ -13,7 +13,10 @@ TeaDecodeTask::TeaDecodeTask(TeaDemux *dm) {
 }
 
 TeaDecodeTask::~TeaDecodeTask() {
-    // TODO
+    thread->Stop();
+    delete thread;
+
+    Reset();
 }
 
 void TeaDecodeTask::Reset() {
