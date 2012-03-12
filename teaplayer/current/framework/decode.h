@@ -15,16 +15,14 @@ class TeaDecodeTask : public sigslot::has_slots<> , talk_base::MessageHandler{
 public:    
     TeaDecodeTask(TeaDemux *dm);
     ~TeaDecodeTask();
-
-    void Start();
-    void Pause();
-    void Resume();
-    void Stop();
-
+    
+    void Reset();
     void PushMediaPacket(MediaPacket *pkt);
+    void DecodeVideo(MediaTime target);
+    sigslot::signal1<VideoPicture *> signalVideoPicture;
 
     MediaTime BufferedVideoLength() {
-        talk_base::CritScope lock(&mutex_); 
+        talk_base::CritScope lock(&vb_mutex_); 
         if ( videoBuffer.size() >= 2) {
             MediaTime delta = videoBuffer.back()->pts - videoBuffer.front()->pts;
             return delta;
@@ -32,42 +30,32 @@ public:
         return 0;
     }
     unsigned int BufferedPictures() {
-        talk_base::CritScope lock(&mutex_); 
+        talk_base::CritScope lock(&vb_mutex_); 
         return videoBuffer.size();
     }
     MediaTime FirstPictureTime() {
-        talk_base::CritScope lock(&mutex_); 
+        talk_base::CritScope lock(&vb_mutex_); 
         return videoBuffer.front()->pts;
     }
     MediaTime LastPictureTime() {
-        talk_base::CritScope lock(&mutex_); 
+        talk_base::CritScope lock(&vb_mutex_); 
         return videoBuffer.back()->pts;
     }
-
-    sigslot::signal1<VideoPicture *> signalVideoPicture;
 
 protected:
     void OnMessage(talk_base::Message *msg);
 
 private:
     enum {
-        ST_STOPPED,
-        ST_DECODING,
-        ST_PAUSED,
-    }state;
-
-    enum {
-        MSG_START_DECODE
+        MSG_DECODE_VIDEO,
     };
-    void doDecode();
+    MediaTime targetVideoTime;
+    void doDecodeVideo();
 
     std::list<MediaPacket *> videoBuffer;
-    
-    pthread_cond_t  control_cond;                                         
-    pthread_mutex_t control_mutex;
-    talk_base::CriticalSection mutex_;
+    talk_base::CriticalSection vb_mutex_;
+    talk_base::CriticalSection vd_mutex_;
     talk_base::Thread *thread; 
-
     TeaDemux *demux;
 };
 

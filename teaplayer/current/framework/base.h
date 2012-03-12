@@ -38,6 +38,7 @@ public:
     unsigned int channel; 
     unsigned char *data;
     unsigned int size;
+    TeaCodecType type;
     void *priv;
 };
 

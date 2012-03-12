@@ -15,21 +15,24 @@ TeaPlayer::TeaPlayer(TeaAccess *a, TeaDemux *d, TeaDecodeTask *dec, TeaVideoOutp
     // building player 
     access->Close();
     demux->Close(); 
-    decode->Stop();
+    decode->Reset();
 
-    timing.fullNess = 1000;
-    timing.beginNess = 500;
+    state = TP_STOPED;
+    timing.jitterDelay = 2000;
     timing.mediaTime = BAD_TIME;
     timing.localTime = BAD_TIME; 
-    timing.controlTime = BAD_TIME;
+    thread = new talk_base::Thread();
+    thread->Start();
+
 
     access->signalBeginofStream.connect(this, &TeaPlayer::onAccessBegin);
     access->signalEndOfStream.connect(this, &TeaPlayer::onAccessEnd);
     access->signalData.connect(this, &TeaPlayer::onAccessData);
+    demux->signalProbed.connect(this, &TeaPlayer::onDemuxProbed);
     demux->signalMediaPacket.connect(this, &TeaPlayer::onMediaPacket);
     decode->signalVideoPicture.connect(this, &TeaPlayer::onVideoPicture);
-
-    state = TP_STOPED;
+    vout->signalPictureRendered.connect(this, &TeaPlayer::onPictureRendered);
+    
 }
 
 TeaPlayer::~TeaPlayer() {
@@ -37,10 +40,8 @@ TeaPlayer::~TeaPlayer() {
 }
 
 void TeaPlayer::Play() {
-    state = TP_BUFFERING;
-    thread->Post(this, MSG_CONTROL_TIMER);
+    state = TP_OPENIGN;
 
-    decode->Start();
     demux->Open();
     access->Open();
 }
@@ -69,7 +70,7 @@ void TeaPlayer::onAccessBegin(bool isOK) {
 }
 
 void TeaPlayer::onAccessEnd() {
-    access->Close();    
+    access->Close();  
     demux->Close();
 }
 
@@ -80,48 +81,66 @@ void TeaPlayer::onAccessData(const unsigned char *p, size_t length) {
     demux->PushNewData(p, length);    
 }
 
-void TeaPlayer::onMediaPacket(MediaPacket *p) {
+void TeaPlayer::onDemuxProbed(bool isOK) {
+    if ( isOK) {
+        state = TP_BUFFERING;
+        thread->Post(this, MSG_CONTROL_TIMER);
+    }
+}
+
+void TeaPlayer::onMediaPacket(MediaPacket *p) {    
     decode->PushMediaPacket(p);
 }
 
-int TeaPlayer::totalBufferedVideoPictures() {
-    return decode->BufferedPictures() + vout->BufferedPictures(); 
-}
-
-MediaTime TeaPlayer::totalBufferedVideoLength() {
-    return decode->BufferedVideoLength() + vout->BufferedLength();  
-}
-
 void TeaPlayer::onVideoPicture(VideoPicture *newPic) {
-    vout->PushVideoPicture(newPic);
+    vout->RenderVideoPicture(newPic);
+}
+
+void TeaPlayer::onPictureRendered() {
+    // syncing for audio
 }
 
 void TeaPlayer::doControl() {
-    // first upatetime
     if ( timing.localTime == BAD_TIME) {
         timing.localTime = CurrentTime();
-        timing.controlTime = 0;
         timing.mediaTime = 0;
     }
     MediaTime cur = CurrentTime();
     MediaTime upd = cur - timing.localTime;
     timing.localTime = cur;
 
-    timing.controlTime = timing.controlTime + upd;
-
     switch( state ) {
         case TP_PLAYING:
             timing.mediaTime = timing.mediaTime + upd;
+            doPlay();
             break;
         case TP_BUFFERING:
-            break;
-        case TP_CATCHUP:
-            timing.mediaTime = timing.mediaTime + 2*upd;
+            doBuffering();
             break;
         case TP_PAUSED:
+            doPause();
             break;
     }
 
+    printf("MediaTime = %lld\n", timing.mediaTime);
+    if ( state != TP_STOPED)
+        thread->PostDelayed(5, this, MSG_CONTROL_TIMER);
 }
 
+void TeaPlayer::doBuffering() {
+    if ( decode->BufferedVideoLength() >= timing.jitterDelay ) {
+        state = TP_PLAYING;
+    }
+}
 
+void TeaPlayer::doPlay() {
+    if ( decode->BufferedPictures() >= 1) {
+        if ( decode->LastPictureTime() > timing.mediaTime ) {
+            decode->DecodeVideo( timing.mediaTime );
+        }
+    }
+}
+
+void TeaPlayer::doPause() {
+
+}

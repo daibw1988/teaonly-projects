@@ -193,18 +193,15 @@ probe_failed:
 void FFDemux::decodeInit() {
     // Find the first video stream
     for(unsigned i = 0; i < pFormatCtx->nb_streams; i++){
-        if(pFormatCtx->streams[i]->codec->codec_type == AVMEDIA_TYPE_VIDEO){
-            AVCodecContext *pCC = pFormatCtx->streams[i]->codec;
-            AVCodec *pC  = avcodec_find_decoder(pCC->codec_id); 
-            assert(pCC != NULL);
-            assert(pC != NULL);
-            int ret = avcodec_open2(pCC, pC, NULL);
-            assert(ret >= 0);
-            TeaDecoder *dec = new FFDecoder(pCC, pC);
-            decoders[i] = dec;
-        } else if ( pFormatCtx->streams[i]->codec->codec_type == AVMEDIA_TYPE_AUDIO) {
-            // TODO                    
-        }
+
+        AVCodecContext *pCC = pFormatCtx->streams[i]->codec;
+        AVCodec *pC  = avcodec_find_decoder(pCC->codec_id); 
+        assert(pCC != NULL);
+        assert(pC != NULL);
+        int ret = avcodec_open2(pCC, pC, NULL);
+        assert(ret >= 0);
+        TeaDecoder *dec = new FFDecoder(pCC, pC);
+        decoders[i] = dec;    
     }
 }
 
@@ -231,6 +228,9 @@ void FFDemux::doDemux() {
             goto stream_end;
         }   
         
+        if ( decoders[newPacket.stream_index] == NULL)
+            continue;
+
         //std::cout << "Get AV packet =  " << newPacket.stream_index << " PTS = " << newPacket.pts << "  DTS = " << newPacket.dts << std::endl;
         MediaPacket *pkt = new MediaPacket( newPacket.size );
         pkt->pts = newPacket.pts;
@@ -238,6 +238,7 @@ void FFDemux::doDemux() {
         pkt->duration = newPacket.duration;
         pkt->size = newPacket.size;
         pkt->channel = newPacket.stream_index;
+        pkt->type = decoders[newPacket.stream_index]->type;
         memcpy(pkt->data, newPacket.data, newPacket.size); 
         signalMediaPacket(pkt);
     }

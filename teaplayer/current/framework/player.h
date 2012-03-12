@@ -18,10 +18,10 @@ class TeaPlayer : public sigslot::has_slots<>, talk_base::MessageHandler{
 public:
     typedef enum {
         TP_STOPED,
+        TP_OPENIGN,
         TP_PLAYING,
         TP_PAUSED,
         TP_BUFFERING,
-        TP_CATCHUP,
     }PlayerState;
 
 public:
@@ -42,12 +42,15 @@ private:
     void onAccessBegin(bool isOK);
     void onAccessData(const unsigned char *p, size_t length);
     void onAccessEnd();
+    void onDemuxProbed(bool isOK);
     void onMediaPacket(MediaPacket *p);
     void onVideoPicture(VideoPicture *p);
-    int totalBufferedVideoPictures();
-    MediaTime totalBufferedVideoLength();
+    void onPictureRendered();
+    
     void doControl();
-
+    void doPlay();
+    void doBuffering();
+    void doPause();
 
 private:
     enum {
@@ -60,11 +63,7 @@ private:
     PlayerState state;
     
     struct{
-        unsigned int overNess;
-        unsigned int fullNess;
-        unsigned int beginNess;
-        MediaTime controlTime;
-        MediaTime lastDelay;
+        MediaTime jitterDelay;
         MediaTime mediaTime;
         MediaTime localTime;
     }timing;
