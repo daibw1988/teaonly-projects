@@ -31,6 +31,8 @@ TeaPlayer::TeaPlayer(TeaAccess *a, TeaDemux *d, TeaVideoOutput *vo):
 }
 
 TeaPlayer::~TeaPlayer() {
+    thread->Stop();
+    
     delete thread;
     delete decode;
 }
@@ -43,20 +45,16 @@ void TeaPlayer::Play() {
 }   
 
 void TeaPlayer::Stop() {
-    access->Close();
-    demux->Close();
-
-    decode->Reset();
-
-    state = TP_STOPED;    
-    thread->Clear(this);
-    thread->Stop();
+    thread->Post(this, MSG_STOP_PLAY);
 }
 
 void TeaPlayer::OnMessage(talk_base::Message *msg) {
     switch(msg->message_id) {
         case MSG_CONTROL_TIMER:
             doControl();
+            break;
+        case MSG_STOP_PLAY:
+            doStop();
             break;
     }
 }
@@ -68,6 +66,7 @@ void TeaPlayer::onAccessBegin(bool isOK) {
 }
 
 void TeaPlayer::onAccessEnd() {
+    printf("onAccessEnd...........\n");
     Stop();
 }
 
@@ -98,6 +97,16 @@ void TeaPlayer::onVideoPicture(VideoPicture *newPic) {
 
 void TeaPlayer::onPictureRendered() {
     // syncing for audio
+}
+
+void TeaPlayer::doStop() {
+    access->Close();
+    demux->Close();
+
+    decode->Reset();
+
+    state = TP_STOPED;    
+    thread->Clear(this);
 }
 
 void TeaPlayer::doControl() {

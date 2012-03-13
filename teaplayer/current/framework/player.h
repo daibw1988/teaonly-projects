@@ -44,7 +44,7 @@ private:
     void onMediaPacket(MediaPacket *p);
     void onVideoPicture(VideoPicture *p);
     void onPictureRendered();
-    
+    void doStop();    
     void doControl();
     void doPlay();
     void doBuffering();
@@ -54,6 +54,7 @@ private:
 private:
     enum {
         MSG_CONTROL_TIMER,
+        MSG_STOP_PLAY,
     };
     TeaAccess *access;
     TeaDemux *demux;
