@@ -26,7 +26,6 @@ void FileAccess::Close() {
 
     if ( temp != NULL) {
         fclose(temp);
-        mediaFile = NULL;
     }
 }
 
@@ -69,4 +68,5 @@ void FileAccess::doAccess() {
         thread->PostDelayed(80, this, MSG_ACCESS_TIMER);
     }
 }
+
 

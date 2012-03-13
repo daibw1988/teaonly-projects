@@ -33,14 +33,32 @@ VideoPicture * FFDecoder::DecodeVideoPacket(MediaPacket *pkt) {
     
     int isFinished;
     avcodec_decode_video2(pCodecCtx, pFrame, &isFinished, &ffpkt);
-    
     delete pkt;
 
     if ( !isFinished ) 
         return NULL;
-   
 
-    return NULL;
+    VideoPicture *vp = new VideoPicture();
+    vp->video_type = YUV_420_PLAN;
+    vp->width = pCodecCtx->width;
+    vp->height = pCodecCtx->height;
+    
+    vp->vplan[0] = (unsigned char *)malloc( vp->height * pFrame->linesize[0]);
+    assert( vp->vplan[0] != NULL);
+    memcpy( vp->vplan[0], pFrame->data[0], vp->height * pFrame->linesize[0]);
+    vp->vplan_length[0] = pFrame->linesize[0];
+    
+    vp->vplan[1] = (unsigned char *)malloc( vp->height * pFrame->linesize[1] / 2);
+    assert( vp->vplan[1] != NULL);
+    memcpy( vp->vplan[1], pFrame->data[1], vp->height * pFrame->linesize[1] / 2);
+    vp->vplan_length[1] = pFrame->linesize[1];
+    
+    vp->vplan[2] = (unsigned char *)malloc( vp->height * pFrame->linesize[3] / 2);
+    assert( vp->vplan[2] != NULL);
+    memcpy( vp->vplan[2], pFrame->data[2], vp->height * pFrame->linesize[2] / 2);
+    vp->vplan_length[2] = pFrame->linesize[2];
+
+    return vp; 
 }
 
 FFDemux::FFDemux(const std::string &file) {
@@ -60,29 +78,29 @@ FFDemux::FFDemux(const std::string &file) {
     pthread_mutex_init(&data_locker, NULL);
     pthread_cond_init(&data_arrive_cond, NULL); 
 
-    
     av_register_all();
     thread = new talk_base::Thread();
     thread->Start();
 }
 
 FFDemux::~FFDemux() {
-    thread->Stop();
     delete thread;
     
-    /*
-    for(std::map<unsigned int, TeaDecode *>::iterator i=decoders.begin(); i != decoders.end(); i++) {
-        (*i).second->Open();
+    for(std::map<unsigned int, TeaDecoder *>::iterator i=decoders.begin(); i != decoders.end(); i++) {
+        delete (*i).second;
     } 
-    */
+    decoders.clear();
 
-    if ( pIO == 0) {
+    if ( pFormatCtx != 0) {
         av_close_input_stream(pFormatCtx);
+        pFormatCtx = 0;
     }
     av_free(pIO);
     pIO = NULL;
     delete buffer_io;
     buffer_io = NULL;
+    delete buffer_stream;
+    buffer_stream = NULL;
 }
 
 int FFDemux::ReadFunc(unsigned char *buf, int buf_size) {
@@ -138,7 +156,9 @@ bool FFDemux::Open() {
 }
 
 void FFDemux::Close() {
-    // TODO
+    buffer_stream_length = -1;
+    pthread_cond_signal(&data_arrive_cond);
+    thread->Stop();
 }
 
 bool FFDemux::PushNewData(const unsigned char *data, size_t length) {

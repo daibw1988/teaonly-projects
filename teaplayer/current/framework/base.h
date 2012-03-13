@@ -48,12 +48,23 @@ typedef enum {
     RGBA_8_PACK  = 3
 }VType;
 
-struct VideoPicture{
+class VideoPicture{
+public:
+    VideoPicture() {
+        vplan[0] = vplan[1] = vplan[2] = NULL;
+    }
+    ~VideoPicture() {
+        for(int i = 0; i < 3; i++) {
+            if ( vplan[i] != NULL)
+                delete vplan[i];
+        }
+    }
+public:    
     VType video_type;
     unsigned int width;
     unsigned int height;
-    unsigned char **vplan;
-    unsigned int *vplan_length;
+    unsigned char *vplan[3];
+    unsigned int vplan_length[3];
     MediaTime   mt;    
 };
 
