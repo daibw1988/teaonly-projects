@@ -66,14 +66,13 @@ void TeaPlayer::onAccessBegin(bool isOK) {
 }
 
 void TeaPlayer::onAccessEnd() {
-    printf("onAccessEnd...........\n");
     Stop();
 }
 
 void TeaPlayer::onAccessData(const unsigned char *p, size_t length) {
     if ( state == TP_STOPED)
        return;
-
+    
     demux->PushNewData(p, length);    
 }
 
@@ -82,6 +81,7 @@ void TeaPlayer::onDemuxProbed(bool isOK) {
         state = TP_BUFFERING;
         thread->Post(this, MSG_CONTROL_TIMER);
     } else {
+        printf("onProbe failed!\n");
         Stop();
     }
 }

@@ -90,18 +90,24 @@ void HttpAccess::OnCloseEvent(talk_base::AsyncSocket* socket, int err) {
 // maybe there is some writeback info.
 void HttpAccess::OnReadEvent(talk_base::AsyncSocket* socket) {
     ASSERT(socket == http_socket_);
+
     static bool skipped_header = false;
     static unsigned char buffer[1024*32];
-    int ret = http_socket_->Recv(buffer, sizeof(buffer));
-    
+    static int last_length = 0;
+
+    int ret = http_socket_->Recv(&buffer[last_length], sizeof(buffer));
+
     if (!skipped_header) {
         if ( ret > 0) {
-            for(int i = 0; i <  ret-3; i++) {
+            last_length += ret;
+            for(int i = 0; i <  last_length -3; i++) {
                 if ( (buffer[i] == '\r') && (buffer[i+1] == '\n') && (buffer[i+2] == '\r') && (buffer[i+3] == '\n') ) {
                     skipped_header = true;
-                    signalData((unsigned char *)&buffer[i+4], (unsigned int)(ret - i - 4));
+                    if ( (last_length-i-4) > 0)
+                        signalData((unsigned char *)&buffer[i+4], (unsigned int)(last_length - i - 4));
+                    last_length = 0;
                     break;
-                }  
+                }
             }
         } 
     } else if ( ret > 0) {
