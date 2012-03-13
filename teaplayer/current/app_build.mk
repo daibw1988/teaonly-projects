@@ -4,6 +4,7 @@ OBJS_ += framework/player.o\
 
 OBJS_ += app/main.o\
          app/ffdemux.o\
+         app/httpaccess.o\
          app/fileaccess.o
 
 

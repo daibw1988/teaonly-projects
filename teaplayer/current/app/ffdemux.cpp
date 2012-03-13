@@ -53,7 +53,7 @@ VideoPicture * FFDecoder::DecodeVideoPacket(MediaPacket *pkt) {
     memcpy( vp->vplan[1], pFrame->data[1], vp->height * pFrame->linesize[1] / 2);
     vp->vplan_length[1] = pFrame->linesize[1];
     
-    vp->vplan[2] = (unsigned char *)malloc( vp->height * pFrame->linesize[3] / 2);
+    vp->vplan[2] = (unsigned char *)malloc( vp->height * pFrame->linesize[2] / 2);
     assert( vp->vplan[2] != NULL);
     memcpy( vp->vplan[2], pFrame->data[2], vp->height * pFrame->linesize[2] / 2);
     vp->vplan_length[2] = pFrame->linesize[2];

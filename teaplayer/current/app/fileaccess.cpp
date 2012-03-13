@@ -34,10 +34,10 @@ void FileAccess::OnMessage(talk_base::Message *msg) {
         case MSG_ACCESS_START:
             mediaFile = fopen( mediaPath.c_str() , "rb"); 
             if ( mediaFile == NULL) {
-                signalBeginofStream(false);
+                signalBeginOfStream(false);
                 return;
             }
-            signalBeginofStream(true);
+            signalBeginOfStream(true);
             thread->PostDelayed(80, this, MSG_ACCESS_TIMER);
             break;
         case MSG_ACCESS_TIMER:

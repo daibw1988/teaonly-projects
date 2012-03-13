@@ -21,7 +21,7 @@ TeaPlayer::TeaPlayer(TeaAccess *a, TeaDemux *d, TeaVideoOutput *vo):
     thread = new talk_base::Thread();
     thread->Start();
 
-    access->signalBeginofStream.connect(this, &TeaPlayer::onAccessBegin);
+    access->signalBeginOfStream.connect(this, &TeaPlayer::onAccessBegin);
     access->signalEndOfStream.connect(this, &TeaPlayer::onAccessEnd);
     access->signalData.connect(this, &TeaPlayer::onAccessData);
     demux->signalProbed.connect(this, &TeaPlayer::onDemuxProbed);
@@ -80,7 +80,6 @@ void TeaPlayer::onAccessData(const unsigned char *p, size_t length) {
 
 void TeaPlayer::onDemuxProbed(bool isOK) {
     if ( isOK) {
-        printf("KAKAK\n");
         state = TP_BUFFERING;
         thread->Post(this, MSG_CONTROL_TIMER);
     } else {
@@ -93,6 +92,7 @@ void TeaPlayer::onMediaPacket(MediaPacket *p) {
 }
 
 void TeaPlayer::onVideoPicture(VideoPicture *newPic) {
+    printf("KAKA\n");
     vout->RenderVideoPicture(newPic);
 }
 

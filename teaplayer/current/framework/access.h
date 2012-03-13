@@ -15,7 +15,7 @@ public:
     virtual void Close() = 0;
 
     // streaming access
-    sigslot::signal1<bool> signalBeginofStream;
+    sigslot::signal1<bool> signalBeginOfStream;
     sigslot::signal0<> signalEndOfStream;
     sigslot::signal2<const unsigned char*, size_t> signalData;
 };
