@@ -7,7 +7,7 @@ extern "C" {
 
 BmpVideoOutput::BmpVideoOutput(JNIEnv* jenv, jobject bmp) {
     target_fb = NULL;
-    
+    isRendered = true;    
     if ((AndroidBitmap_getInfo(jenv, bmp, &info)) < 0) {  
         return;
     }
@@ -39,16 +39,21 @@ void BmpVideoOutput::RenderVideoPicture(VideoPicture *target) {
                      info.stride,
                      yuv2rgb565_table,
                      0);
-
+    isRendered = false;
 }
 
-void BmpVideoOutput::BitBlt(JNIEnv* jenv, jobject bmp) {
+int BmpVideoOutput::BitBlt(JNIEnv* jenv, jobject bmp) {
     void *pixels;
     
+    if ( isRendered )
+        return -1;
+
     if ((AndroidBitmap_lockPixels(jenv, bmp, &pixels)) < 0) { 
-        return;
+        return -1;
     }
     memcpy( pixels, target_fb, info.height * info.stride);
     AndroidBitmap_unlockPixels(jenv, bmp);
+
+    return 0;
 }
 

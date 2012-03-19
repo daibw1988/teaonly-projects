@@ -13,9 +13,10 @@ public:
     virtual ~BmpVideoOutput();
 
     virtual void RenderVideoPicture(VideoPicture *target);
-    void BitBlt(JNIEnv* jenv, jobject bmp);
+    int BitBlt(JNIEnv* jenv, jobject bmp);
 
 private:
+    bool isRendered;
     AndroidBitmapInfo  info;
     void *target_fb;
 };

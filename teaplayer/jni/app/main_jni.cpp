@@ -45,8 +45,7 @@ JNIEXPORT jint JNICALL JNIDEFINE(startPlayer)( JNIEnv* env, jobject obj, jobject
 
 JNIEXPORT jint JNICALL JNIDEFINE(renderBMP)(JNIEnv* env, jobject obj, jobject bmp) {
     if (player != NULL) {
-        vout->BitBlt(env, bmp);
-        return 0;        
+        return vout->BitBlt(env, bmp);
     }
     return -1;
 }
