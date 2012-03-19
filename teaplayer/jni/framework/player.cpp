@@ -157,7 +157,9 @@ void TeaPlayer::doPlay() {
 }
 
 void TeaPlayer::doQuery() {
+    /*
     printf("Buffered pictures:%d\n", decode->BufferedPictures() );
     printf("Buffered length:%ld\n", decode->BufferedVideoLength() );
     printf("Current timeing: %ld\n", timing.mediaTime );
+    */
 }
