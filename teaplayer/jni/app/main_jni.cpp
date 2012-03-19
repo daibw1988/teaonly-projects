@@ -10,7 +10,7 @@
 #include "bmp_vout.h"
 #include "player.h"
 
-#define  JNIDEFINE(fname) Java_tv_ppcam_broidviewer_LiveVideo_##fname
+#define  JNIDEFINE(fname) Java_teaonly_projects_teaplayer_TeaPlayer_##fname
 
 //static HttpAccess *access;
 static FileAccess *access;

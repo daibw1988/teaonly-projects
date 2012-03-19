@@ -57,7 +57,7 @@ int FFDecoder::DecodeVideoPacket(MediaPacket *pkt, VideoPicture* vp) {
         }
         if ( vp->vplan_length[i] > 0) {
             assert(vp->vplan[i] != NULL);       
-            if ( i > 1)
+            if ( i >= 1)
                 memcpy( vp->vplan[i], pFrame->data[i], vp->height * pFrame->linesize[i] / 2);
             else
                 memcpy( vp->vplan[i], pFrame->data[i], vp->height * pFrame->linesize[i]);
