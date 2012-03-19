@@ -48,8 +48,15 @@ void TeaPlayer::Stop() {
     thread->Post(this, MSG_STOP_PLAY);
 }
 
+void TeaPlayer::Query() {
+    thread->Post(this, MSG_QUERY_TIMER);
+}
+
 void TeaPlayer::OnMessage(talk_base::Message *msg) {
     switch(msg->message_id) {
+        case MSG_QUERY_TIMER:
+            doQuery();
+            break;
         case MSG_CONTROL_TIMER:
             doControl();
             break;
@@ -94,6 +101,7 @@ void TeaPlayer::onVideoPicture(VideoPicture *newPic) {
 }
 
 void TeaPlayer::onPictureRendered() {
+    printf("Picture is rendered!\n");
 }
 
 void TeaPlayer::doStop() {
@@ -148,3 +156,8 @@ void TeaPlayer::doPlay() {
     }
 }
 
+void TeaPlayer::doQuery() {
+    printf("Buffered pictures:%d\n", decode->BufferedPictures() );
+    printf("Buffered length:%ld\n", decode->BufferedVideoLength() );
+    printf("Current timeing: %ld\n", timing.mediaTime );
+}

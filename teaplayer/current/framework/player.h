@@ -32,7 +32,8 @@ public:
     };
     void Play();
     void Stop();
-
+    void Query();
+        
 protected:
     void OnMessage(talk_base::Message *msg);    
 
@@ -50,8 +51,10 @@ private:
     void doBuffering();
     void doPause();
 
+    void doQuery();
 private:
     enum {
+        MSG_QUERY_TIMER,
         MSG_CONTROL_TIMER,
         MSG_STOP_PLAY,
     };
