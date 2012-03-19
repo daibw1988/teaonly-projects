@@ -1,13 +1,46 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
-    android:layout_width="fill_parent"
-    android:layout_height="fill_parent"
-    >
-<TextView  
+<FrameLayout 
+    xmlns:android="http://schemas.android.com/apk/res/android" 
     android:layout_width="fill_parent" 
-    android:layout_height="wrap_content" 
-    android:text="Hello World, TeaPlayer"
-    />
-</LinearLayout>
+    android:layout_height="fill_parent">
+    
+    <SurfaceView 
+        android:layout_width="fill_parent" 
+        android:layout_height="fill_parent"        
+        android:id="@+id/surface_video" />
+    
+    <LinearLayout 
+        android:id="@+id/layout_control" 
+        android:layout_width="fill_parent" 
+        android:layout_height="wrap_content" 
+        android:gravity="bottom|center"
+        xmlns:android="http://schemas.android.com/apk/res/android" 
+        android:orientation="vertical">
 
+        <Button 
+            android:id="@+id/btn_pause"
+            android:layout_height="wrap_content"
+            android:layout_width="128dip"
+            android:gravity="center|bottom"
+            android:layout_marginLeft = "5dip"
+            android:layout_marginRight = "5dip"
+            android:textSize="12dip"
+            android:shadowColor="#FFFFFFFF"
+            android:singleLine="true"
+            android:shadowDx="0"
+            android:shadowDy="2"
+            android:shadowRadius="1"
+            android:textStyle="bold"            
+            android:text="Play"/>
+		
+        <TextView
+            android:id="@+id/label_msg"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft = "5dip"
+            android:textColor="#FFFFFFFF"
+            android:text="..."/>
+
+    </LinearLayout>
+
+</FrameLayout>
