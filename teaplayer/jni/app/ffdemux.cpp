@@ -292,16 +292,19 @@ void FFDemux::doDemux() {
         
         if ( decoders[newPacket.stream_index] == NULL)
             continue;
+        
+        const AVStream *p_stream = pFormatCtx->streams[newPacket.stream_index];
 
-        //std::cout << "Get AV packet =  " << newPacket.stream_index << " PTS = " << newPacket.pts << "  DTS = " << newPacket.dts << std::endl;
+
         MediaPacket *pkt = new MediaPacket( newPacket.size );
-        pkt->pts = newPacket.pts;
-        pkt->dts = newPacket.dts;
+        pkt->pts = newPacket.pts * 1000.0 * p_stream->time_base.num / p_stream->time_base.den;
+        pkt->dts = newPacket.dts * 1000.0 * p_stream->time_base.num / p_stream->time_base.den;
         pkt->duration = newPacket.duration;
         pkt->size = newPacket.size;
         pkt->channel = newPacket.stream_index;
         pkt->type = decoders[newPacket.stream_index]->type;
         memcpy(pkt->data, newPacket.data, newPacket.size); 
+        std::cout << "Get AV packet =  " << newPacket.stream_index << " PTS = " << pkt->pts << "  DTS = " << pkt->dts << std::endl;
         signalMediaPacket(pkt);
     }
 

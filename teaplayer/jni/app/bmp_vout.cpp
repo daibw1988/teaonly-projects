@@ -24,7 +24,7 @@ BmpVideoOutput::~BmpVideoOutput() {
 void BmpVideoOutput::RenderVideoPicture(VideoPicture *target) {
     int minwidth;
     int minheight;
-
+    
     minwidth = target->width < info.width ? target->width : info.width;
     minheight = target->height < info.height ? target->height : info.height;
 

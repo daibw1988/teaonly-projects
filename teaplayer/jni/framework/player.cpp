@@ -1,5 +1,6 @@
 #include <assert.h>
 #include <iostream>
+#include "helper.h"
 #include "base.h"
 #include "access.h"
 #include "demux.h"
@@ -150,8 +151,11 @@ void TeaPlayer::doBuffering() {
 
 void TeaPlayer::doPlay() {
     if ( decode->BufferedPictures() >= 1) {
-        if ( decode->LastPictureTime() > timing.mediaTime ) {
+        if ( decode->LastPictureTime() >= timing.mediaTime ) {
             decode->DecodeVideo( timing.mediaTime );
+        } else {
+            timing.mediaTime = decode->LastPictureTime();
+            decode->DecodeVideo( decode->FirstPictureTime() + 1 );
         }
     }
 }

@@ -50,7 +50,7 @@ void FileAccess::OnMessage(talk_base::Message *msg) {
 }
 
 void FileAccess::doAccess() {
-    static unsigned char buffer[1024*6];        
+    static unsigned char buffer[1024*8];        
     FILE *target = mediaFile; 
 
     if ( target == NULL)
