@@ -16,13 +16,14 @@ extern "C" {
 
 #include "demux.h"
 
+//#define OLD_FFMPEG 1
+
 class FFDecoder: public TeaDecoder {
 public:
     FFDecoder(AVCodecContext *pCC, AVCodec *pC);
-    virtual ~FFDecoder() {
-        avcodec_close(pCodecCtx);
-    }
-    virtual VideoPicture* DecodeVideoPacket(MediaPacket *pkt);
+    virtual ~FFDecoder();
+    virtual int DecodeVideoPacket(MediaPacket *, VideoPicture*);
+
 private:
     AVCodecContext *pCodecCtx;
     AVCodec        *pCodec;
@@ -55,8 +56,12 @@ private:
     std::string targetFile;
     talk_base::Thread *thread;              //demuxing thread 
     AVFormatContext *pFormatCtx;
-    AVInputFormat *pFormat; 
+    AVInputFormat *pFormat;     
+#ifdef OLD_FFMPEG
+    ByteIOContext *pIO;    
+#else
     AVIOContext   *pIO;
+#endif
     unsigned char *buffer_io;
     unsigned int buffer_io_size;
     unsigned int buffer_probe_size;

@@ -11,7 +11,7 @@ TeaPlayer::TeaPlayer(TeaAccess *a, TeaDemux *d, TeaVideoOutput *vo):
         access(a),
         demux(d),
         vout(vo){
-    
+
     decode = new TeaDecodeTask(demux);
 
     state = TP_STOPED;
@@ -81,7 +81,6 @@ void TeaPlayer::onDemuxProbed(bool isOK) {
         state = TP_BUFFERING;
         thread->Post(this, MSG_CONTROL_TIMER);
     } else {
-        printf("onProbe failed!\n");
         Stop();
     }
 }
@@ -91,15 +90,16 @@ void TeaPlayer::onMediaPacket(MediaPacket *p) {
 }
 
 void TeaPlayer::onVideoPicture(VideoPicture *newPic) {
-    printf("KAKA\n");
     vout->RenderVideoPicture(newPic);
 }
 
 void TeaPlayer::onPictureRendered() {
-    // syncing for audio
 }
 
 void TeaPlayer::doStop() {
+    if ( state == TP_STOPED)
+        return;
+   
     access->Close();
     demux->Close();
 
@@ -125,6 +125,8 @@ void TeaPlayer::doControl() {
             break;
         case TP_BUFFERING:
             doBuffering();
+            break;
+        default:
             break;
     }
 

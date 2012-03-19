@@ -8,8 +8,8 @@
 
 class TeaVideoOutput: public sigslot::has_slots<>  {
 public:    
-    TeaVideoOutput();
-    virtual ~TeaVideoOutput();
+    TeaVideoOutput(){};
+    virtual ~TeaVideoOutput(){};
 
     virtual void RenderVideoPicture(VideoPicture *target);
     sigslot::signal0<> signalPictureRendered;

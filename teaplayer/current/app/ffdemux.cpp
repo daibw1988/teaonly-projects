@@ -19,9 +19,15 @@ FFDecoder::FFDecoder(AVCodecContext *pCC, AVCodec *pC) {
         type = TEACODEC_TYPE_UNKNOW;
 }
 
-VideoPicture * FFDecoder::DecodeVideoPacket(MediaPacket *pkt) {
+FFDecoder::~FFDecoder(){
+    avcodec_close(pCodecCtx);
+    if ( pFrame != NULL)
+        av_free(pFrame);
+}
+
+int FFDecoder::DecodeVideoPacket(MediaPacket *pkt, VideoPicture* vp) {
     if ( type != TEACODEC_TYPE_VIDEO)
-        return NULL;
+        return 0;
     
     
     //convert MediaPacket to FFMPEG's AVPacket
@@ -36,35 +42,36 @@ VideoPicture * FFDecoder::DecodeVideoPacket(MediaPacket *pkt) {
     delete pkt;
 
     if ( !isFinished ) 
-        return NULL;
-
-    VideoPicture *vp = new VideoPicture();
+        return 0;
     vp->video_type = YUV_420_PLAN;
     vp->width = pCodecCtx->width;
     vp->height = pCodecCtx->height;
-    
-    vp->vplan[0] = (unsigned char *)malloc( vp->height * pFrame->linesize[0]);
-    assert( vp->vplan[0] != NULL);
-    memcpy( vp->vplan[0], pFrame->data[0], vp->height * pFrame->linesize[0]);
-    vp->vplan_length[0] = pFrame->linesize[0];
-    
-    vp->vplan[1] = (unsigned char *)malloc( vp->height * pFrame->linesize[1] / 2);
-    assert( vp->vplan[1] != NULL);
-    memcpy( vp->vplan[1], pFrame->data[1], vp->height * pFrame->linesize[1] / 2);
-    vp->vplan_length[1] = pFrame->linesize[1];
-    
-    vp->vplan[2] = (unsigned char *)malloc( vp->height * pFrame->linesize[2] / 2);
-    assert( vp->vplan[2] != NULL);
-    memcpy( vp->vplan[2], pFrame->data[2], vp->height * pFrame->linesize[2] / 2);
-    vp->vplan_length[2] = pFrame->linesize[2];
+   
+    for(int i = 0; i < 3; i++) {
+        if( (vp->vplan_length[i] != (unsigned int)pFrame->linesize[i]) && (pFrame->linesize[i] > 0) ) {
+            vp->vplan_length[i] = pFrame->linesize[i];
+            if ( vp->vplan[i] != NULL ) {
+                free(vp->vplan[i]);           
+            }
+            vp->vplan[i] = (unsigned char *)malloc( vp->height * vp->vplan_length[i]);            
+        }
+        if ( vp->vplan_length[i] > 0) {
+            assert(vp->vplan[i] != NULL);       
+            if ( i > 1)
+                memcpy( vp->vplan[i], pFrame->data[i], vp->height * pFrame->linesize[i] / 2);
+            else
+                memcpy( vp->vplan[i], pFrame->data[i], vp->height * pFrame->linesize[i]);
+        }
+    }
 
-    return vp; 
+    return 1;
 }
 
 FFDemux::FFDemux(const std::string &file) {
     targetFile = file;
     probeFailed = false;
     pFormatCtx = NULL;
+    pFormat = NULL;
     pIO = NULL;
     buffer_io = NULL;
     decoders.clear();
@@ -134,6 +141,21 @@ bool FFDemux::Open() {
 
     // create io for libavformat
 	buffer_io = new unsigned char[buffer_io_size];
+#ifdef OLD_FFMPEG
+    pIO = (ByteIOContext *) av_mallocz(sizeof(ByteIOContext));
+    assert(pIO != NULL);
+    int ret = init_put_byte(pIO,
+                            buffer_io,
+                            buffer_io_size,
+                            0,
+                            this,
+                            ::ReadFunc,
+                            0,
+                            0);
+    if ( ret < 0)
+        assert(0);
+    pIO->is_streamed = 1;
+#else
 	pIO = avio_alloc_context(buffer_io,
 							buffer_io_size/2,
 							0,
@@ -141,8 +163,9 @@ bool FFDemux::Open() {
 							::ReadFunc,
 							0,
 							0); 
+    assert(pIO != NULL);
     pIO->seekable = 0;
-
+#endif
     probeFailed = false;
     decoders.clear();
     pFormatCtx = NULL;
@@ -165,7 +188,7 @@ bool FFDemux::PushNewData(const unsigned char *data, size_t length) {
     if ( probeFailed )
         return false;
 
-    if ( pFormatCtx == NULL) {
+    if ( pFormat == NULL) {
         memcpy( &buffer_stream[buffer_stream_length], data, length);
         buffer_stream_length += length;
         if ( (unsigned int)buffer_stream_length >= buffer_probe_size ) { 
@@ -201,9 +224,13 @@ void FFDemux::prepareProbe() {
     if ( pFormat == NULL) {
         goto probe_failed;
     }
+#ifdef OLD_FFMPEG
+    pFormatCtx = NULL;
+#else
     pFormatCtx = avformat_alloc_context();
     pFormatCtx->pb = pIO;
-
+#endif
+    
     thread->Post(this, MSG_DEMUX_START);
     return;
 
@@ -220,8 +247,13 @@ void FFDemux::decodeInit() {
         AVCodec *pC  = avcodec_find_decoder(pCC->codec_id); 
         assert(pCC != NULL);
         assert(pC != NULL);
+#ifdef OLD_FFMPEG
+        int ret = avcodec_open(pCC, pC);
+#else
         int ret = avcodec_open2(pCC, pC, NULL);
-        assert(ret >= 0);
+#endif
+        if ( ret < 0)
+            assert(0);
         TeaDecoder *dec = new FFDecoder(pCC, pC);
         decoders[i] = dec;    
     }
@@ -230,16 +262,24 @@ void FFDemux::decodeInit() {
 void FFDemux::doDemux() { 
     
     // probe meida stream format
-    if( avformat_open_input(&pFormatCtx, targetFile.c_str(), pFormat, 0) < 0){ 
+#ifdef OLD_FFMPEG
+    if( av_open_input_stream(&pFormatCtx, pIO, targetFile.c_str(), pFormat, 0)<0){
+#else
+    if( avformat_open_input(&pFormatCtx, targetFile.c_str(), pFormat, 0) < 0) {
+#endif
         pFormatCtx = 0;
         goto probe_failed;
     }  
-    
+
     pFormatCtx->probesize = 8000;
     if(av_find_stream_info(pFormatCtx)<0){
         goto probe_failed;        
-    }   
+    }
+#ifdef OLD_FFMPEG   
+    dump_format(pFormatCtx, 0, "null", 0);
+#else
     av_dump_format(pFormatCtx, 0, "null", 0);
+#endif
     decodeInit(); 
     signalProbed(true);
     

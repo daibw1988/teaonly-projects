@@ -9,7 +9,7 @@
 class TeaDecoder{
 public:    
     virtual ~TeaDecoder(){};
-    virtual VideoPicture* DecodeVideoPacket(MediaPacket *) { return NULL; }
+    virtual int DecodeVideoPacket(MediaPacket *, VideoPicture*) { return 0; }
     virtual void *DecodeAudioSamples(MediaPacket *) {return NULL; }     
     TeaCodecType type;
 };

@@ -52,6 +52,7 @@ private:
     MediaTime targetVideoTime;
     void doDecodeVideo();
 
+    VideoPicture target_picture;
     std::list<MediaPacket *> videoBuffer;
     talk_base::CriticalSection vb_mutex_;
     talk_base::CriticalSection vd_mutex_;

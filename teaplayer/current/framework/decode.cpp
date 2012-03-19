@@ -73,10 +73,10 @@ void TeaDecodeTask::doDecodeVideo() {
         assert(dec != NULL);
         assert(dec->type == TEACODEC_TYPE_VIDEO);
 
-        VideoPicture *pic = dec->DecodeVideoPacket( target );
+        int ret = dec->DecodeVideoPacket( target , &target_picture);
         
-        if ( pic != NULL) 
-            signalVideoPicture(pic);
+        if ( ret > 0) 
+            signalVideoPicture(&target_picture);
     }
 
     vd_mutex_.Leave();

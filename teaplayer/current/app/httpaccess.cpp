@@ -22,8 +22,8 @@ bool HttpAccess::Open() {
 void HttpAccess::Close(){
     if( http_socket_) {
         http_socket_->SignalCloseEvent.disconnect(this); 
-        http_socket_->SignalConnectEvent.disconnect(this); 
-        http_socket_->Close();
+        http_socket_->SignalConnectEvent.disconnect(this);
+        http_socket_->Close(); 
         delete http_socket_; 
         http_socket_ = NULL;
     }
@@ -39,7 +39,7 @@ void HttpAccess::OnMessage(talk_base::Message *msg) {
 }
 
 void HttpAccess::doConnect() {
-    std::string host = "127.0.0.1";
+    std::string host = "192.168.0.106";
     unsigned int port = 8080;
 
     createSocket();
@@ -66,7 +66,7 @@ void HttpAccess::createSocket() {
 
 void HttpAccess::httpQuery() {
     char http_header[1024];
-    snprintf(http_header, 1024, "GET /demo.flv HTTP/1.0\r\nUser-Agent: EzPlayer\r\n");
+    snprintf(http_header, 1024, "GET /live.flv HTTP/1.0\r\nUser-Agent: EzPlayer\r\n");
     http_socket_->Send((const unsigned char *)http_header, strlen(http_header));
 }
 

@@ -48,7 +48,6 @@ private:
     void doControl();
     void doPlay();
     void doBuffering();
-
     void doPause();
 
 private:

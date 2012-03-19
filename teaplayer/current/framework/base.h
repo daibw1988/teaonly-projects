@@ -52,6 +52,9 @@ class VideoPicture{
 public:
     VideoPicture() {
         vplan[0] = vplan[1] = vplan[2] = NULL;
+        width = 0;
+        height = 0;
+        vplan_length[0] = vplan_length[1] = vplan_length[2] = 0;
     }
     ~VideoPicture() {
         for(int i = 0; i < 3; i++) {
