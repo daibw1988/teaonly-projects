@@ -46,9 +46,7 @@ public class TeaPlayer extends Activity implements SurfaceHolder.Callback {
 		int height = display.getHeight();
         mVideoPicture = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565);
 
-        startPlayer(mVideoPicture);
-
-        mRender = new RenderThread();      
+         
 	}
 
 
@@ -64,6 +62,8 @@ public class TeaPlayer extends Activity implements SurfaceHolder.Callback {
     public void surfaceCreated(SurfaceHolder holder) {
         // start the thread here so that we don't busy-wait in run()
         // waiting for the surface to be created
+        startPlayer(mVideoPicture);
+        mRender = new RenderThread();     
         mRender.mRun = true;
         mRender.start();
     }
@@ -114,7 +114,7 @@ public class TeaPlayer extends Activity implements SurfaceHolder.Callback {
                     }
                     sleep(80);
                 } catch (Exception e) {
-                                 
+                    break;                 
                 } finally {
                     // do this in a finally so that if an exception is thrown
                     // during the above, we don't leave the Surface in an
