@@ -11,7 +11,7 @@ namespace talk_base{
 
 class HttpAccess : public TeaAccess, talk_base::MessageHandler{ 
 public:
-    HttpAccess();
+    HttpAccess(const std::string ipaddr);
     virtual ~HttpAccess();
 
     virtual bool Open();
@@ -35,6 +35,7 @@ private:
     talk_base::Thread *thread;
     talk_base::AsyncSocket* http_socket_;
     bool is_ready_;
+    std::string target_ipaddr;
 };
 
 #endif

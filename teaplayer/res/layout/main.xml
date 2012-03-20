@@ -16,9 +16,17 @@
         android:gravity="bottom|center"
         xmlns:android="http://schemas.android.com/apk/res/android" 
         android:orientation="vertical">
-
+        <EditText
+            android:id="@+id/txt_ipaddr"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center|bottom"
+            android:layout_marginLeft = "32dip"
+            android:layout_marginRight = "32dip"
+            android:text="10.0.2.2"
+            />   
         <Button 
-            android:id="@+id/btn_pause"
+            android:id="@+id/btn_play"
             android:layout_height="wrap_content"
             android:layout_width="128dip"
             android:gravity="center|bottom"
@@ -31,7 +39,7 @@
             android:shadowDy="2"
             android:shadowRadius="1"
             android:textStyle="bold"            
-            android:text="Pause"/>
+            android:text="Play"/>
 		
         <TextView
             android:id="@+id/label_msg"

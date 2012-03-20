@@ -102,20 +102,19 @@ void TeaPlayer::onVideoPicture(VideoPicture *newPic) {
 }
 
 void TeaPlayer::onPictureRendered() {
-    printf("Picture is rendered!\n");
 }
 
 void TeaPlayer::doStop() {
     if ( state == TP_STOPED)
         return;
    
+    LOGD(">>>player is in doStop"); 
+     
     access->Close();
     demux->Close();
-
     decode->Reset();
-
-    state = TP_STOPED;    
     thread->Clear(this);
+    state = TP_STOPED;    
 }
 
 void TeaPlayer::doControl() {

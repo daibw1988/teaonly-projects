@@ -1,10 +1,12 @@
-
+#include "helper.h"
 #include "httpaccess.h"
 #include "talk/base/socketstream.h"
 #include "talk/base/asyncsocket.h"
 
-HttpAccess::HttpAccess() {
+HttpAccess::HttpAccess(const std::string ipaddr) {
+    target_ipaddr = ipaddr;
     http_socket_ = NULL;
+    is_ready_ = false;
     thread = new talk_base::Thread();
     thread->Start();
 }
@@ -39,11 +41,10 @@ void HttpAccess::OnMessage(talk_base::Message *msg) {
 }
 
 void HttpAccess::doConnect() {
-    std::string host = "192.168.0.106";
     unsigned int port = 8080;
 
     createSocket();
-    talk_base::SocketAddress addr(host, port);
+    talk_base::SocketAddress addr(target_ipaddr, port);
     if (http_socket_->Connect(addr) < 0) {
         if ( ! http_socket_->IsBlocking() ) {
             Close();    
@@ -91,18 +92,17 @@ void HttpAccess::OnCloseEvent(talk_base::AsyncSocket* socket, int err) {
 void HttpAccess::OnReadEvent(talk_base::AsyncSocket* socket) {
     ASSERT(socket == http_socket_);
 
-    static bool skipped_header = false;
     static unsigned char buffer[1024*32];
     static int last_length = 0;
 
     int ret = http_socket_->Recv(&buffer[last_length], sizeof(buffer));
 
-    if (!skipped_header) {
+    if (!is_ready_) {
         if ( ret > 0) {
             last_length += ret;
             for(int i = 0; i <  last_length -3; i++) {
                 if ( (buffer[i] == '\r') && (buffer[i+1] == '\n') && (buffer[i+2] == '\r') && (buffer[i+3] == '\n') ) {
-                    skipped_header = true;
+                    is_ready_ = true;
                     if ( (last_length-i-4) > 0)
                         signalData((unsigned char *)&buffer[i+4], (unsigned int)(last_length - i - 4));
                     last_length = 0;

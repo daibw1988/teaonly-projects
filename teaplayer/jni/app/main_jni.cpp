@@ -12,26 +12,36 @@
 
 #define  JNIDEFINE(fname) Java_teaonly_projects_teaplayer_TeaPlayer_##fname
 
-//static HttpAccess *access;
-static FileAccess *access;
+static HttpAccess *access;
+//static FileAccess *access;
 static FFDemux *demux;
 //static TeaVideoOutput *vout;
 static BmpVideoOutput *vout;
 static TeaPlayer *player;
 
 extern "C" {
-  JNIEXPORT jint JNICALL JNIDEFINE(startPlayer)(JNIEnv* env, jobject obj, jobject bmp_fb);
+  JNIEXPORT jint JNICALL JNIDEFINE(startPlayer)(JNIEnv* env, jobject obj, jobject bmp_fb, jstring ipaddr);
   JNIEXPORT jint JNICALL JNIDEFINE(renderBMP)(JNIEnv* env, jobject obj, jobject bmp_fb);
   JNIEXPORT jint JNICALL JNIDEFINE(stopPlayer)(JNIEnv* env, jclass clz);
 };
 
+static std::string convert_jstring(JNIEnv *env, const jstring &js) {
+    static char outbuf[1024];
+    std::string str;
 
-JNIEXPORT jint JNICALL JNIDEFINE(startPlayer)( JNIEnv* env, jobject obj, jobject bmp) {
+    int len = env->GetStringLength(js);
+    env->GetStringUTFRegion(js, 0, len, outbuf);
+
+    str = outbuf;
+    return str;
+}
+
+JNIEXPORT jint JNICALL JNIDEFINE(startPlayer)( JNIEnv* env, jobject obj, jobject bmp, jstring ipaddr) {
     if (player != NULL)
         return -1;
 
-    //access = new HttpAccess();
-    access = new FileAccess("/sdcard/demo.flv");
+    access = new HttpAccess( convert_jstring(env, ipaddr) );
+    //access = new FileAccess("/sdcard/demo.flv");
     demux = new FFDemux("live.flv");
     //vout = new TeaVideoOutput();
     vout = new BmpVideoOutput(env, bmp);
@@ -51,7 +61,7 @@ JNIEXPORT jint JNICALL JNIDEFINE(renderBMP)(JNIEnv* env, jobject obj, jobject bm
 }
 
 JNIEXPORT jint JNICALL JNIDEFINE(stopPlayer)( JNIEnv* env , jclass clz) {
-    if ( player == NULL) {
+    if ( player != NULL) {
         player->Stop();
 
         delete player;

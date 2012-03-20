@@ -10,16 +10,21 @@ import android.util.AttributeSet;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Point;
+import android.widget.Button;
+import android.widget.EditText;
 import android.view.Display;
 import android.view.SurfaceView;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.View; 
+import android.view.View.OnClickListener;
 import android.view.SurfaceHolder; 
 
 public class TeaPlayer extends Activity implements SurfaceHolder.Callback {
 	private SurfaceView videoSurface;
 	private SurfaceHolder mSurfaceHolder;
+    private Button btnPlay;
+    private EditText txtIpaddr;
 
 	private RenderThread mRender; 
 	private Bitmap	mVideoPicture;
@@ -37,6 +42,10 @@ public class TeaPlayer extends Activity implements SurfaceHolder.Callback {
 
         LoadLibraries();
 
+        txtIpaddr = (EditText)findViewById(R.id.txt_ipaddr);
+        btnPlay = (Button)findViewById(R.id.btn_play);
+        btnPlay.setOnClickListener(playAction);
+
 		videoSurface = (SurfaceView)findViewById(R.id.surface_video);
         mSurfaceHolder = videoSurface.getHolder();
         mSurfaceHolder.addCallback(this);
@@ -49,6 +58,17 @@ public class TeaPlayer extends Activity implements SurfaceHolder.Callback {
          
 	}
 
+    private OnClickListener playAction = new OnClickListener() { 
+        @Override
+        public void onClick(View v) {
+            startPlayer(mVideoPicture, txtIpaddr.getText().toString() );
+            mRender = new RenderThread();     
+            mRender.mRun = true;
+            mRender.start();
+             
+            btnPlay.setEnabled(false);
+        }   
+    }; 
 
     /* Callback invoked when the surface dimensions change. */
     public void surfaceChanged(SurfaceHolder holder, int format, int width,
@@ -62,10 +82,7 @@ public class TeaPlayer extends Activity implements SurfaceHolder.Callback {
     public void surfaceCreated(SurfaceHolder holder) {
         // start the thread here so that we don't busy-wait in run()
         // waiting for the surface to be created
-        startPlayer(mVideoPicture);
-        mRender = new RenderThread();     
-        mRender.mRun = true;
-        mRender.start();
+        btnPlay.setEnabled(true);
     }
 
     /*
@@ -74,19 +91,19 @@ public class TeaPlayer extends Activity implements SurfaceHolder.Callback {
      * never be touched again!
      */
     public void surfaceDestroyed(SurfaceHolder holder) {
-        boolean retry = true;
-        
-        mRender.mRun = false;
-
-        while (retry) {
-            try {
-                mRender.join();
-                retry = false;
-            } catch (InterruptedException e) {
-            }
-        }         
-    
-        stopPlayer();
+        if ( mRender != null) {
+            boolean retry = true;
+            mRender.mRun = false;
+            while (retry) {
+                try {
+                    mRender.join();
+                    retry = false;
+                } catch (InterruptedException e) {
+                }
+            }         
+            mRender = null;
+            stopPlayer();
+        }
     }
 
     public static void LoadLibraries() {
@@ -96,7 +113,7 @@ public class TeaPlayer extends Activity implements SurfaceHolder.Callback {
         System.loadLibrary("teaplayer");		
     }
 
-    private native int startPlayer(Bitmap bmp);
+    private native int startPlayer(Bitmap bmp, String ipaddr);
     private native int renderBMP(Bitmap bmp);
     private native int stopPlayer();
 	
