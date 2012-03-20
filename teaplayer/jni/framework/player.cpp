@@ -154,7 +154,7 @@ void TeaPlayer::doPlay() {
         if ( decode->LastPictureTime() >= timing.mediaTime ) {
             decode->DecodeVideo( timing.mediaTime );
         } else {
-            timing.mediaTime = decode->LastPictureTime();
+            //timing.mediaTime = decode->LastPictureTime();
             decode->DecodeVideo( decode->FirstPictureTime() + 1 );
         }
     }
