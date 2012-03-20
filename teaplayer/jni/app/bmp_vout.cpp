@@ -21,24 +21,31 @@ BmpVideoOutput::~BmpVideoOutput() {
         free(target_fb);   
 }
 
-void BmpVideoOutput::RenderVideoPicture(VideoPicture *target) {
-    int minwidth;
-    int minheight;
-    
-    minwidth = target->width < info.width ? target->width : info.width;
-    minheight = target->height < info.height ? target->height : info.height;
+void BmpVideoOutput::RenderVideoPicture(VideoPicture *vp) {
+    int minwidth = vp->width < info.width ? vp->width : info.width;
+    int minheight = vp->height < info.height ? vp->height : info.height;
 
-    yuv420_2_rgb565( (unsigned char *)target_fb,
-                     target->vplan[0],
-                     target->vplan[1],
-                     target->vplan[2],
+    int src_offset_x = (vp->width - minwidth) / 2;
+    int src_offset_y = (vp->height - minheight) / 2;
+    src_offset_x = src_offset_x + src_offset_x % 2;
+    src_offset_y = src_offset_y + src_offset_y % 2;
+    
+    int dst_offset_x = (info.width - minwidth) / 2;
+    int dst_offset_y = (info.height - minheight) / 2; 
+
+    yuv420_2_rgb565( 
+                     (unsigned char *)target_fb + dst_offset_x * 2 + dst_offset_y * info.stride, 
+                     vp->vplan[0] + src_offset_x + src_offset_y * vp->vplan_length[0],
+                     vp->vplan[1] + src_offset_x/2 + src_offset_y * vp->vplan_length[1]/2,
+                     vp->vplan[2] + src_offset_x/2 + src_offset_y * vp->vplan_length[2]/2,
                      minwidth,
                      minheight,
-                     target->vplan_length[0],
-                     target->vplan_length[1],
+                     vp->vplan_length[0],
+                     vp->vplan_length[1],
                      info.stride,
                      yuv2rgb565_table,
-                     0);
+                     1);
+
     isRendered = false;
 }
 
